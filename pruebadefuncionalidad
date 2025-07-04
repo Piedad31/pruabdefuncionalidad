@@ -1,0 +1,4724 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="x-ua-compatible" content="IE=Edge" />
+  <meta charset="utf-8">
+  <title>Gestor de Casos</title>
+  <HTA:APPLICATION
+    ID="GestorCasos"
+    APPLICATIONNAME="Gestor de Casos"
+    BORDER="dialog"
+    CAPTION="yes"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="yes"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="yes"
+    SCROLL="yes"
+    WINDOWSTATE="maximize"
+  />
+  <style>
+    html, body {
+      width: 100vw; height: 100vh; margin: 0; padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+      overflow: hidden;
+    }
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+      background: #f5f7fa;
+    }
+    .sidebar {
+      width: 240px;
+      background: #17406a;
+      display: flex; flex-direction: column; align-items: stretch;
+      padding: 0;
+      border-right: 2px solid #d0d4da;
+      min-height: 100vh;
+      box-shadow: 2px 0 12px #17406a10;
+      z-index: 10;
+    }
+    .sidebar .title {
+      color: #fff;
+      font-size: 1.35em;
+      font-weight: 700;
+      padding: 36px 16px 20px 16px;
+      border-bottom: 1px solid #285080;
+      background: #17406a;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+    .sidebar button {
+      background: none;
+      border: none;
+      color: #e5eaf1;
+      font-size: 1.03em;
+      padding: 14px 22px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.16s, color 0.14s;
+      border-bottom: 1px solid #204d7c;
+      outline: none;
+      font-weight: 500;
+      letter-spacing: 0.1px;
+      border-radius: 0 12px 12px 0;
+      margin-right: 6px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar button:hover, .sidebar button.active {
+      background: #205085;
+      color: #fff;
+    }
+    .sidebar .spacer {
+      flex: 1;
+    }
+    .user-bar-container {
+      width: 100%;
+      background: #eaf0f7;
+      border-bottom: 1px solid #d0d4da;
+      display: flex;
+      align-items: center;
+      padding: 0 18px 0 0;
+      height: 54px;
+      min-height: 54px;
+      box-shadow: 0 1.5px 0 #e7ecfa;
+      position: relative;
+      z-index: 20;
+    }
+    .user-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      font-size: 1.01em;
+      min-width: 0;
+    }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #17406a;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 1.12em; letter-spacing: 1px;
+      border: 2px solid #d0d4da; box-shadow: 0 2px 7px #b3c9e920; margin-right: 2px;
+      user-select: none;
+    }
+    .user-info { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .user-info .user-name {
+      color: #17406a; font-weight: 600; font-size: 1em; letter-spacing: 0.4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .user-info .user-role {
+      color: #285080; font-size: 0.93em; font-weight: 500; letter-spacing: 0.1px;
+      margin-top: 1.5px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .user-bar .logout-btn {
+      margin-left: 14px;
+      background: #17406a;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 6px 18px;
+      transition: background 0.14s, color 0.15s, box-shadow 0.16s;
+      box-shadow: none;
+    }
+    .user-bar .logout-btn:hover {
+      background: #b00020;
+      color: #fff;
+    }
+.form-block button.boton {
+  margin-top: 14px;
+}
+
+/* ESTILOS PARA SECCIÓN CREAR OFICIOS V2 - WIZARD */
+.wizard-container {
+  max-width: 750px;
+  margin: 15px auto; /* Reducido margen vertical */
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 40, 80, 0.12); /* Sombra más suave */
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 110px); /* (user-bar + datetime-bar + algunos márgenes) */
+}
+
+.wizard-header {
+  background: #17406a;
+  color: #fff;
+  padding: 15px 25px; /* Padding reducido */
+  text-align: center;
+  flex-shrink: 0; /* Evita que el header se encoja */
+}
+.wizard-title {
+  margin: 0 0 10px 0; /* Reducido margen inferior */
+  font-size: 1.35em; /* Ligeramente más pequeño */
+  font-weight: 600;
+}
+.wizard-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px; /* Gap reducido */
+}
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #a0b8d1;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+}
+.wizard-step:hover .wizard-step-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+.wizard-step.active {
+  color: #ffc107;
+  font-weight: 700;
+}
+.wizard-step-number {
+  width: 30px; /* Más pequeño */
+  height: 30px;
+  font-size: 0.95em;
+  margin-bottom: 4px; /* Margen reducido */
+  border-width: 2px;
+  border-radius: 50%;
+  background: transparent;
+  border-color: #7b95b1;
+  color: #7b95b1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+.wizard-step.active .wizard-step-number {
+  background: #ffc107;
+  border-color: #ffc107;
+  color: #0d2c4f;
+}
+.wizard-step.completed .wizard-step-number {
+  background: #a0b8d1;
+  border-color: #a0b8d1;
+  color: #0d2c4f;
+}
+.wizard-step-label {
+  font-size: 0.75em; /* Más pequeño */
+  max-width: 55px;
+  line-height: 1.1;
+  text-align: center;
+}
+.wizard-step-connector {
+  flex-grow: 1;
+  height: 2px; /* Más fino */
+  background-color: #c5d3e0;
+  margin: 0;
+  transform: translateY(-17px); /* Ajustar alineación */
+  transition: background-color 0.3s ease;
+  min-width: 15px; /* Reducido */
+}
+.wizard-step.active ~ .wizard-step-connector {
+   /* background-color: #ffc107; */ /* JS maneja esto mejor */
+}
+.wizard-step.completed ~ .wizard-step-connector {
+    background-color: #a0b8d1;
+}
+.wizard-step-tooltip {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 10; /* Asegurar que esté sobre otros elementos */
+    bottom: 105%; /* Ajustar posición */
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85em;
+}
+.wizard-step-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.wizard-content {
+  padding: 15px 25px 10px 25px;
+  background: #f7fafd;
+  flex-grow: 1;
+  overflow-y: auto; /* Permitir scroll SÓLO en el contenido si es necesario */
+}
+
+.wizard-step-content {
+  display: none;
+  animation: fadeInWizardStep 0.4s ease-out;
+}
+.wizard-step-content.active {
+  display: block;
+}
+@keyframes fadeInWizardStep {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wizard-step-title {
+  font-size: 1.25em; /* Reducido */
+  color: #0d2c4f;
+  margin-top: 0;
+  margin-bottom: 15px; /* Reducido */
+  text-align: left;
+  border-bottom: 1.5px solid #e0e7ee; /* Más sutil */
+  padding-bottom: 8px; /* Reducido */
+}
+
+.form-block-oficio-v2 {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 15px; /* Espacio reducido entre field-blocks */
+}
+
+.input-grande-v2 {
+  padding: 10px 12px; /* Padding reducido */
+  font-size: 1em;
+  border-radius: 6px;
+  border: 1.5px solid #c5d3e0;
+  background: #fff;
+  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-grande-v2:focus {
+  border-color: #ff8c00;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
+}
+
+.lista-formatos-v2.wizard-format-list {
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px;
+  min-height: 100px; /* Reducido */
+  margin-bottom: 15px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+  max-height: 220px;  /* Reducido significativamente */
+  overflow-y: auto;
+  border: 1px solid #d3dde6;
+}
+#seccion-crear-oficios-v2 #lista-formatos-v2 a {
+  color: #205085;
+  font-size: 0.95em; /* Reducido */
+  padding: 8px 10px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  border-bottom: 1px solid #e8eef3;
+  display: block;
+  text-decoration: none;
+  font-weight: 500;
+}
+#seccion-crear-oficios-v2 #lista-formatos-v2 a:last-child {
+  border-bottom: none;
+}
+#seccion-crear-oficios-v2 #lista-formatos-v2 a:hover {
+  background: #e8f0f7;
+  color: #0d2c4f;
+}
+#seccion-crear-oficios-v2 #lista-formatos-v2 a.selected {
+  background: #ff8c00;
+  color: #fff;
+  font-weight: 600;
+}
+.wizard-format-count {
+  font-size: 0.85em; /* Más pequeño */
+  color: #5a789b;
+  margin: -5px 0 8px 2px; /* Ajuste de margen */
+  text-align: left;
+}
+
+.boton-oficio-v2,
+.wizard-navigation .boton-wizard-next,
+.wizard-create-button {
+  background: #ff8c00;
+  color: #fff;
+  border-radius: 6px;
+  padding: 10px 22px; /* Padding ajustado */
+  font-size: 1em; /* Reducido */
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(255, 140, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+.boton-oficio-v2:hover,
+.wizard-navigation .boton-wizard-next:hover,
+.wizard-create-button:hover {
+  background: #e67e00;
+  box-shadow: 0 3px 8px rgba(255, 140, 0, 0.25);
+  transform: translateY(-1px);
+}
+
+.boton-secundario-v2,
+.wizard-navigation .boton-wizard-prev {
+  background: #e8f0f7;
+  color: #0d2c4f;
+  border: 1.5px solid #c5d3e0;
+  border-radius: 6px;
+  padding: 9px 20px; /* Padding ajustado */
+  font-size: 0.95em; /* Reducido */
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.boton-secundario-v2:hover,
+.wizard-navigation .boton-wizard-prev:hover {
+  background: #dde6ed;
+  border-color: #a0b8d1;
+}
+
+#seccion-crear-oficios-v2 .boton-v2.wizard-select-button {
+    background: #2a5a8c;
+    color: white;
+    border-radius: 6px;
+    padding: 8px 18px; /* Reducido */
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95em; /* Reducido */
+    width: auto;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+#seccion-crear-oficios-v2 .boton-v2.wizard-select-button:hover {
+    background: #1e4266;
+}
+
+.wizard-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px; /* Reducido */
+  padding-top: 15px; /* Reducido */
+  border-top: 1px solid #d3dde6;
+  flex-shrink: 0; /* Evita que la navegación se encoja */
+}
+.wizard-navigation > .boton-wizard-next:only-child {
+  margin-left: auto;
+}
+
+#seccion-crear-oficios-v2 label {
+  font-weight: 600;
+  color: #0d2c4f;
+  margin-bottom: 5px; /* Reducido */
+  display: block;
+  font-size: 0.95em;
+}
+
+.wizard-selected-subcase {
+  margin-top: 8px; /* Reducido */
+  padding: 8px 10px; /* Reducido */
+  background-color: #e0eaf3;
+  border: 1px solid #b8cce0;
+  border-radius: 4px; /* Menos redondeado */
+  font-weight: 500;
+  color: #0d2c4f;
+  font-size: 0.95em;
+}
+.wizard-note {
+  font-size: 0.9em;
+  color: #405a77;
+  background: #e8f0f7;
+  padding: 10px 12px; /* Reducido */
+  border-radius: 4px;
+  margin-top: 10px; /* Reducido */
+  border-left: 3px solid #a0b8d1;
+}
+
+.wizard-summary {
+  background: #f0f5fa;
+  padding: 15px 20px; /* Reducido */
+  border-radius: 6px;
+  margin-bottom: 20px; /* Reducido */
+  border: 1px solid #d3dde6;
+}
+.wizard-summary h4 {
+  margin-top: 0;
+  margin-bottom: 12px; /* Reducido */
+  color: #0d2c4f;
+  font-size: 1.1em; /* Reducido */
+  border-bottom: 1px solid #c8d3df;
+  padding-bottom: 6px; /* Reducido */
+}
+.wizard-summary p {
+  margin: 0 0 8px 0;
+  font-size: 0.95em; /* Reducido */
+  color: #2c3e50;
+}
+.wizard-summary p strong {
+  color: #103a63;
+}
+/* Fin de estilos para V2 */
+
+    .datetime-bar {
+      display: flex; justify-content: flex-end; align-items: center;
+      font-size: 1em; color: #205085; font-weight: 600;
+      padding: 7px 18px 7px 0;
+      border-radius: 0 0 0 0;
+      border-bottom: 1px solid #d0d4da;
+      min-height: 26px;
+      margin-bottom: 5px;
+      margin-top: 8px;
+      letter-spacing: 0.3px;
+      background: #f5f7fa;
+      user-select: none;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-height: 0;
+      max-height: 100vh;
+      overflow: auto;
+      padding: 0 0 0 0;
+      background: #fff;
+    }
+    .form-block {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 9px #17406a13;
+      max-width: 1000px;
+      margin: 28px auto 0 auto;
+      padding: 26px 24px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 19px;
+      border: 1px solid #d0d4da;
+      width: 100vw;
+    }
+    .form-title {
+      color: #17406a;
+      font-size: 1.14em;
+      font-weight: 700;
+      margin-bottom: 7px;
+      letter-spacing: 0.5px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .menu-crear-opciones, .menu-buscar-opciones {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+      margin-top: 7px;
+    }
+    .boton-opcion {
+      background: #eaf0f7;
+      color: #17406a;
+      font-weight: 600;
+      border: 1px solid #17406a;
+      border-radius: 7px;
+      font-size: 1.06em;
+      padding: 8px 24px;
+      cursor: pointer;
+      transition: background 0.13s, color 0.13s, border 0.11s;
+      outline: none;
+      box-shadow: none;
+      text-transform: capitalize;
+      letter-spacing: 0.1px;
+    }
+    .boton-opcion.selected, .boton-opcion:active {
+      background: #17406a;
+      color: #fff;
+      border: 1px solid #285080;
+    }
+    .form-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .field-block {
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .field-label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #17406a;
+      font-size: 1em;
+      letter-spacing: .12px;
+    }
+    .form-block input, .form-block select {
+      font-size: 1em;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: 1px solid #b7ccee;
+      box-sizing: border-box;
+      margin-bottom: 2px;
+      background: #f5f7fa;
+      transition: border 0.12s;
+      font-weight: 500;
+      box-shadow: none;
+    }
+    .form-block input:focus, .form-block select:focus {
+      border: 1.3px solid #17406a;
+      outline: none;
+      background: #fff;
+    }
+    .boton {
+      background: #17406a;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 24px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.13s, box-shadow 0.09s, transform 0.07s;
+      box-shadow: none;
+      outline: none;
+      display: inline-block;
+      margin-top: 10px;
+      font-weight: 600;
+      letter-spacing: .1px;
+    }
+    .boton:hover {
+      background: #205085;
+      box-shadow: 0 1px 7px #17406a13;
+      transform: translateY(-1px) scale(1.01);
+    }
+    .feedback-success {
+      color: #119c41;
+      background: #e2fbe6;
+      padding: 9px 14px;
+      border-radius: 6px;
+      margin-top: 10px;
+      border: 1px solid #b3e5c1;
+      font-size: 1em;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing:.2px;
+      box-shadow: none;
+    }
+    .feedback-error {
+      color: #b00020;
+      background: #ffe5e8;
+      padding: 9px 14px;
+      border-radius: 6px;
+      margin-top: 10px;
+      border: 1px solid #ffbac6;
+      font-size: 1em;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing:.13px;
+      box-shadow: none;
+    }
+    .form-tip {
+      margin-top:14px;
+      font-size:0.97em;
+      color:#285080;
+      background: #eaf0f7;
+      border-radius: 7px;
+      padding: 7px 13px;
+      text-align: center;
+      letter-spacing:.1px;
+      border:1px solid #d0d4da;
+      box-shadow: none;
+    }
+//Sección para forma de crear oficios.
+/* Mantiene la base de tu estilo original pero lo hace más moderno y agradable */
+
+/* Bloque principal */
+.form-block-oficio {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px #17406a13;
+  border: 1.5px solid #d0d4da;
+  max-width: 540px;
+  margin: 36px auto 0 auto;
+  padding: 30px 28px 26px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+}
+
+/* Título */
+.form-title-oficio {
+  color: #17406a;
+  font-size: 1.21em;
+  font-weight: 700;
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+  text-align: left;
+  border-left: 4px solid #205085;
+  padding-left: 14px;
+  padding-top: 2px;
+  background: linear-gradient(to right, #eaf0f7 0%, #fff 100%);
+  border-radius: 7px 0 0 7px;
+  box-shadow: 0 2px 8px #17406a08;
+}
+
+/* Paso header */
+.paso-header {
+  color: #205085;
+  font-size: 1.06em;
+  font-weight: 600;
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.paso-numero {
+  background: #17406a;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.01em;
+  border-radius: 50%;
+  width: 1.65em;
+  height: 1.65em;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 7px;
+  box-shadow: 0 2px 6px #17406a15;
+}
+
+/* Inputs y selects grandes */
+.input-grande {
+  width: 100%;
+  padding: 10px 13px;
+  font-size: 1.07em;
+  border-radius: 8px;
+  border: 1.5px solid #b7ccee;
+  background: #f5f7fa;
+  margin-bottom: 6px;
+  transition: border 0.18s, background 0.13s;
+  box-sizing: border-box;
+}
+.input-grande:focus {
+  border: 2px solid #17406a;
+  background: #fff;
+  outline: none;
+}
+
+/* Lista de formatos */
+.lista-formatos {
+  background: #f7fafd;
+  border-radius: 10px;
+  padding: 18px 18px;
+  min-height: 70px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 12px #17406a10;
+}
+
+/* Botones */
+.boton-oficio {
+  background: linear-gradient(90deg, #17406a 60%, #205085 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.08em;
+  font-weight: 700;
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  transition: background 0.17s, box-shadow 0.15s, transform 0.09s;
+  box-shadow: 0 2px 8px #17406a22;
+}
+.boton-oficio:hover {
+  background: linear-gradient(90deg, #205085 60%, #17406a 100%);
+  box-shadow: 0 4px 16px #17406a22;
+  transform: translateY(-2px) scale(1.015);
+}
+.boton-secundario {
+  background: #eaf0f7;
+  color: #17406a;
+  border: 1.5px solid #b7ccee;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 1em;
+  margin-top: 4px;
+  margin-bottom: 3px;
+  transition: background 0.11s, color 0.13s, border 0.11s;
+}
+.boton-secundario:hover {
+  background: #d0d4da;
+  color: #17406a;
+  border: 1.5px solid #17406a;
+}
+
+/* Tips */
+.form-tip-oficio {
+  background: #eaf2fb;
+  border-left: 4px solid #285080;
+  color: #285080;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 1em;
+  box-shadow: 0 2px 8px #17406a08;
+}
+
+/* Detalle: los labels */
+#seccion-crear-oficios label {
+  font-weight: 600;
+  color: #17406a;
+  margin-bottom: 5px;
+  display: block;
+}
+#seccion-crear-oficios .form-block {
+  max-width: 500px;
+  margin: 35px auto 0 auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 5px 24px #1a237e11;
+  padding: 26px 30px 25px 30px;
+}
+#seccion-crear-oficios .form-title {
+  font-size: 1.29em;
+  font-weight: bold;
+  color: #213c5a;
+  margin-bottom: 17px;
+  letter-spacing: .5px;
+}
+#lista-formatos a {
+  display: block;
+  color: #1e4a8b;
+  font-size: 1.06em;
+  margin: 4px 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+#lista-formatos .pagina {
+  margin-top: 20px;
+  text-align: center;
+}
+#lista-formatos .pagina button {
+  margin: 0 3px;
+  font-size: 1em;
+  padding: 2px 9px;
+  border-radius: 5px;
+  border: 1px solid #bccce7;
+  background: #f0f3fb;
+  cursor: pointer;
+}
+#lista-formatos .pagina .active {
+  background: #3765c0;
+  color: #fff;
+  font-weight: bold;
+}
+.tarjeta-panel-selector:hover {
+  background: #d0d4da;
+  border-color: #17406a;
+}
+// PANEL LATERAL
+#panel-lateral-selector {
+  width: 360px !important;
+  min-width: 360px !important;
+  max-width: 360px !important;
+}
+#lista-panel-selector {
+  width: 330px !important;
+  min-width: 330px !important;
+  max-width: 330px !important;
+  word-break: break-all !important;
+}
+.tarjeta-panel-selector {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  background: #eaf0f7;
+  border-radius: 8px;
+  padding: 12px 13px;
+  box-shadow: 0 2px 8px #17406a13;
+  cursor: pointer;
+  transition: background 0.14s, border 0.16s;
+  border: 1px solid #b7ccee;
+  font-size: 1em;
+  margin-bottom: 4px;
+  user-select: none;
+}
+.nombre-caso-card {
+  display: block !important;
+  white-space: normal !important;
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  font-weight: 600;
+  color: #17406a;
+  margin-bottom: 3px;
+  pointer-events: none;
+}
+.words-caso-card {
+  display: block !important;
+  font-size: .96em;
+  color: #285080;
+  pointer-events: none;
+}
+//BOTON CAMBIAR PANEL
+.boton {
+  background: #17406a;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 22px;
+  font-weight: 700;
+  font-size: 1em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #17406a13;
+  transition: background 0.15s, box-shadow 0.12s;
+  outline: none;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.boton-naranja {
+  background: #ff9800 !important;
+  color: #fff !important;
+}
+
+.boton-naranja:hover, .boton-naranja:focus {
+  background: #fb8c00 !important;
+}
+
+.boton-pequeno {
+  font-size: 0.92em !important;
+  padding: 4px 14px !important;
+  margin-left: 22px !important;
+}
+//PANEL LATERAL PAGINACIÓN
+#lista-panel-selector button.active {
+  background: #3765c0;
+  color: #fff;
+  font-weight: bold;
+}
+#lista-panel-selector button {
+  background: #f0f3fb;
+  border: 1px solid #bccce7;
+  border-radius: 5px;
+  margin: 0 2px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+//Estadística
+.institucional-wrap {
+  max-width: 950px;
+  margin: 36px auto 0 auto;
+  padding: 0 18px 32px 18px;
+  background: #f8fafc;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px #17406a09;
+  border: 1.2px solid #e3eaf2;
+}
+
+.institucional-bienvenida {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+.institucional-logo-bg {
+  width: 54px;
+  height: 54px;
+  background: #17406a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 7px;
+  box-shadow: 0 1.5px 6px #17406a13;
+  animation: saludo-mano 1.1s cubic-bezier(0.36,0.07,0.19,0.97);
+}
+.institucional-logo {
+  font-size: 2.2em;
+  color: #fff;
+  display: inline-block;
+  animation: saludo-mano 1.4s 1;
+  transform-origin: 70% 80%;
+}
+@keyframes saludo-mano {
+  0% { transform: rotate(0deg);}
+  10% { transform: rotate(18deg);}
+  20% { transform: rotate(-16deg);}
+  30% { transform: rotate(10deg);}
+  40% { transform: rotate(-6deg);}
+  50% { transform: rotate(4deg);}
+  60% { transform: rotate(0deg);}
+  100% { transform: rotate(0deg);}
+}
+
+.institucional-titulo {
+  font-size: 1.15em;
+  font-weight: 800;
+  color: #17406a;
+  margin-bottom: 2px;
+}
+.institucional-nombre {
+  color: #1976d2;
+}
+.institucional-subtitulo {
+  font-size: 0.99em;
+  color: #285080;
+  opacity: 0.95;
+  font-weight: 500;
+}
+.institucional-divider {
+  border-bottom: 1.5px solid #e3eaf2;
+  margin: 14px 0 13px 0;
+}
+.tarjetas-estadisticas-institucional {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  margin: 26px auto 0 auto;
+  max-width: 1200px;
+}
+
+.tarjeta-item {
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 2px 10px #17406a13;
+  border: 2px solid #e3eaf2;
+  width: 230px;
+  min-width: 180px;
+  max-width: 98vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 17px 10px 0 10px;
+  margin-bottom: 10px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  transition: box-shadow 0.14s, border 0.13s;
+}
+.tarjeta-item:hover {
+  box-shadow: 0 5px 24px #17406a22;
+  border-color: #1976d2;
+}
+
+.tarjeta-icono {
+  margin-bottom: 5px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tarjeta-icono span {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.icon-oficio {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2" fill="black"/><rect width="10" height="2" x="7" y="6" fill="white"/><rect width="10" height="2" x="7" y="10" fill="white"/><rect width="6" height="2" x="7" y="14" fill="white"/></svg>');
+}
+.icon-concepto {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5" fill="black"/><rect x="10" y="14" width="4" height="5" fill="black"/><rect x="9" y="19" width="6" height="2" fill="gray"/></svg>');
+}
+.icon-acta {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2" fill="black"/><ellipse cx="12" cy="15" rx="6" ry="3" fill="white"/><rect width="10" height="2" x="7" y="7" fill="white"/></svg>');
+}
+.icon-constancia {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2" fill="black"/><polyline points="8,16 12,12 16,16" fill="none" stroke="white" stroke-width="2"/><rect width="10" height="2" x="7" y="7" fill="white"/></svg>');
+}
+.icon-circular {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="black" stroke-width="2"/><path d="M12 6v6l4 2" fill="none" stroke="black" stroke-width="2"/></svg>');
+}
+
+.tarjeta-titulo {
+  font-size: 1.14em;
+  font-weight: 800;
+  color: #17406a;
+  letter-spacing: 1.2px;
+  margin-bottom: 2px;
+  text-align: center;
+}
+.tarjeta-cantidad {
+  font-size: 1.15em;
+  font-weight: 900;
+  min-width: 38px;
+  padding: 2px 16px;
+  border-radius: 7px;
+  margin-bottom: 11px;
+  margin-top: 3px;
+  color: #fff;
+  box-shadow: 0 2px 8px #17406a13;
+  letter-spacing: 1px;
+}
+.bg-oficio { background: #ff9800; }
+.bg-concepto { background: #119c41; }
+.bg-acta { background: #5c45d3; }
+.bg-constancia { background: #1976d2; }
+.bg-circular { background: #b00020; }
+
+.tarjeta-datos {
+  background: #f5f8fc;
+  border-radius: 0 0 13px 13px;
+  width: 100%;
+  padding: 11px 7px 11px 12px;
+  margin-top: auto;
+  font-size: 0.99em;
+  color: #234;
+  border-top: 1.5px solid #e3eaf2;
+  text-align: left;
+}
+.tarjeta-datos b {
+  color: #17406a;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .tarjetas-estadisticas-institucional {
+    gap: 9px;
+  }
+  .tarjeta-item {
+    width: 190px;
+    min-width: 140px;
+    padding: 12px 3vw 0 3vw;
+  }
+}
+@media (max-width: 700px) {
+  .tarjetas-estadisticas-institucional {
+    gap: 7px;
+  }
+  .tarjeta-item {
+    width: 99vw;
+    min-width: 120px;
+    padding: 10px 2vw 0 2vw;
+  }
+}
+
+//Sincronización automática
+#sync-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  font-size: 1em;
+  margin-left: 0;
+  margin-right: 18px; /* Espacio del mensaje al avatar */
+  padding: 0;
+}
+.user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+//Búsqueda de casos
+#tabla-casos th, #tabla-casos td {
+  padding: 7px 8px;
+  font-size: 0.99em;
+  text-align: left;
+}
+#tabla-casos tbody tr:nth-child(even) {
+  background: #f0f4fa;
+}
+#tabla-casos tbody tr:hover {
+  background: #e1ebfa !important;
+  cursor: pointer;
+}
+#tabla-casos button.boton-pequeno {
+  font-size: 0.93em;
+  padding: 3px 12px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap:4px;
+}
+
+//Calendario
+.calendario-wrap {
+  margin: 30px auto 0 auto;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px #17406a13;
+  border: 1.5px solid #d0d4da;
+  padding: 28px 26px 26px 26px;
+}
+.calendario-titulo {
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.25em;
+  letter-spacing: .5px;
+  color: #17406a;
+  margin-bottom: 18px;
+}
+#lista-eventos-calendario {
+  margin-top: 0;
+}
+#tabla-calendario th,
+#tabla-calendario td {
+  text-align: center;
+  font-size: 1.09em;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+#tabla-calendario th {
+  background: #eaf0f7;
+  color: #17406a;
+  font-weight: 700;
+  padding: 7px 0 7px 0;
+}
+#tabla-calendario td {
+  padding: 6px 2px;
+  min-width: 90px;
+  height: 70px;
+  vertical-align: top;
+  position: relative;
+  transition: background 0.15s, box-shadow 0.12s;
+  cursor: pointer;
+}
+#tabla-calendario td:not([style*="background:#f5f7fa"]) {
+  background: #fff;
+}
+#tabla-calendario td:hover {
+  background: #f0f4fa !important;
+  box-shadow: 0 2px 8px #17406a18;
+  z-index: 2;
+}
+.cal-evento {
+  background: #1976d2;
+  color: #fff;
+  border-radius: 6px;
+  padding: 3px 7px 3px 7px;
+  margin: 2px 0 2px 0;
+  font-size: 0.98em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px #17406a20;
+}
+.cal-evento-hora {
+  font-weight: 600;
+  font-size: 0.95em;
+  margin-right: 4px;
+  color: #ffe082;
+  letter-spacing: 0.2px;
+}
+.cal-evento-titulo {
+  flex: 1 1 auto;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-evento-borrar {
+  color: #ffbdbd;
+  font-weight: bold;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: color 0.13s;
+}
+.cal-evento-borrar:hover {
+  color: #d32f2f;
+}
+.cal-dia-num {
+  font-weight: 600;
+  font-size: 1.13em;
+  color: #17406a;
+  margin-bottom: 2px;
+  margin-top: 2px;
+}
+.cal-dia-hoy {
+  background: #fffae6 !important;
+  border: 2px solid #ffb300 !important;
+  border-radius: 7px;
+}
+.cal-dia-otro {
+  background: #f5f7fa !important;
+  color: #b0b0b0 !important;
+}
+.cal-dialog-bg {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: #0004;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.cal-dialog {
+  background: #fff;
+  padding: 26px 25px 18px 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px #17406a33;
+  min-width: 320px;
+  max-width: 96vw;
+  display: flex;
+  flex-direction: column;
+}
+.cal-dialog-titulo {
+  font-weight: 700;
+  font-size: 1.07em;
+  color: #17406a;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.cal-dialog-form-row {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+.cal-dialog input[type="text"] {
+  flex: 2;
+  padding: 7px 8px;
+  font-size: 1em;
+  border-radius: 6px;
+  border: 1px solid #b7ccee;
+}
+.cal-dialog select {
+  flex: 1;
+  padding: 7px 8px;
+  font-size: 1em;
+  border-radius: 6px;
+  border: 1px solid #b7ccee;
+}
+.cal-dialog .boton {
+  padding: 8px 18px;
+  font-size: 1em;
+  border-radius: 7px;
+  margin-left: 4px;
+  margin-right: 4px;
+  margin-top: 0;
+}
+.cal-dialog-footer {
+  text-align: right;
+  margin-top: 9px;
+}
+.boton {
+  background: #17406a;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 9px 22px;
+  font-size: 1em;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: .1px;
+  transition: background 0.13s, box-shadow 0.09s, transform 0.07s;
+}
+.boton:hover {
+  background: #205085;
+}
+.boton-pequeno {
+  font-size: 0.92em !important;
+  padding: 5px 17px !important;
+  margin-left: 0 !important;
+}
+.calendario-alerta-recordatorio {
+  background: #fffbe7;
+  color: #9a6b00;
+  border: 1.5px solid #ffe082;
+  border-radius: 10px;
+  margin-bottom: 17px;
+  padding: 16px 19px 12px 19px;
+  font-size: 1.12em;
+  max-width: 650px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  box-shadow: 0 2px 12px #ffe08244;
+}
+.calendario-alerta-recordatorio-close {
+  position: absolute;
+  right: 13px;
+  top: 9px;
+  font-size: 1.35em;
+  color: #e6a900;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+  padding: 0;
+}
+.calendario-alerta-recordatorio-close:hover {
+  color: #b08700;
+}
+    h1, h2 {
+      color: #17406a;
+      margin-top: 0;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-size: 1.15em;
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 10px; background: #eaf0f7; border-radius: 7px; }
+    ::-webkit-scrollbar-thumb { background: #b7ccee; border-radius: 7px; }
+    ::-webkit-scrollbar-thumb:hover { background: #17406a; }
+  </style>
+</head>
+<body onload="inicializarDashboard()">
+<div class="app-container">
+  <nav class="sidebar">
+    <div class="title">Gestor de Casos</div>
+    <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
+    <button onclick="mostrarSeccion('crear-caso')" id="btn-crear-caso">Crear año/caso/subcaso</button>
+<button onclick="mostrarSeccion('crear-oficios')" id="btn-crear-oficios">Crear oficios</button>
+<button onclick="mostrarSeccion('crear-oficios-v2')" id="btn-crear-oficios-v2">Crear oficios v2</button>
+    <button onclick="mostrarSeccion('buscar-caso')" id="btn-buscar-caso">Buscar caso</button>
+    <button onclick="mostrarSeccion('calendario')" id="btn-calendario">Calendario</button>
+    <div class="spacer"></div>
+  </nav>
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+<div class="user-bar-container" id="user-bar-container" style="position: relative;">
+  <div class="user-bar" id="user-bar" style="display: flex; align-items: center; justify-content: flex-end;">
+    <div class="user-avatar" id="user-avatar">J</div>
+    <div class="user-info" style="margin-right: 20px;">
+      <span class="user-name" id="user-name">Jhonatan</span>
+      <span class="user-role" id="user-role">Administrador</span>
+    </div>
+    <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">Salir</button>
+    <!-- El mensaje va fuera del flujo normal, posicionado -->
+    <div id="sync-status" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);"></div>
+  </div>
+</div>
+<section class="content" id="seccion-contenido">
+      <div class="datetime-bar" id="datetime-bar"></div>
+
+      <!-- Selector de año arriba de las tarjetas -->
+      <div id="seccion-inicio" style="display:block;">
+<div class="institucional-wrap">
+      <!-- Encabezado de bienvenida -->
+      <div class="institucional-bienvenida">
+        <div class="institucional-logo-bg">
+          <span class="institucional-logo" aria-label="Saludo" title="Bienvenido">👋</span>
+        </div>
+        <div>
+          <div class="institucional-titulo">
+            <b>Bienvenido/a, <span class="institucional-nombre">Jhonatan</span></b>
+          </div>
+          <div class="institucional-subtitulo">
+            Plataforma para la gestión y consulta de casos y documentos institucionales.
+          </div>
+        </div>
+      </div>
+
+      </div>
+        <div style="margin: 18px 0 14px 0;">
+          <label for="selector-anio" style="font-weight:700; color:#17406a; margin-right:8px;">Año:</label>
+          <select id="selector-anio" onchange="actualizarTarjetasEstadisticas()" style="font-size:1em; padding:4px 10px; border-radius:6px; border:1px solid #b7ccee;"></select>
+        </div>
+        <div class="institucional-wrap">
+          <!-- Tarjetas estadísticas -->
+          <div class="tarjetas-estadisticas-institucional">
+            <!-- Oficio -->
+            <div class="tarjeta-item-oficio tarjeta-item">
+              <div class="tarjeta-icono"><span class="icon-oficio"></span></div>
+              <div class="tarjeta-titulo">OFICIO</div>
+              <div class="tarjeta-cantidad bg-oficio">0</div>
+              <div class="tarjeta-datos">
+                <b>Última producción:</b> -<br>
+                <b>Lugar de almacenamiento:</b> -
+              </div>
+            </div>
+            <!-- Concepto -->
+            <div class="tarjeta-item-concepto tarjeta-item">
+              <div class="tarjeta-icono"><span class="icon-concepto"></span></div>
+              <div class="tarjeta-titulo">CONCEPTO</div>
+              <div class="tarjeta-cantidad bg-concepto">0</div>
+              <div class="tarjeta-datos">
+                <b>Última producción:</b> -<br>
+                <b>Lugar de almacenamiento:</b> -
+              </div>
+            </div>
+            <!-- Acta -->
+            <div class="tarjeta-item-acta tarjeta-item">
+              <div class="tarjeta-icono"><span class="icon-acta"></span></div>
+              <div class="tarjeta-titulo">ACTA</div>
+              <div class="tarjeta-cantidad bg-acta">0</div>
+              <div class="tarjeta-datos">
+                <b>Última producción:</b> -<br>
+                <b>Lugar de almacenamiento:</b> -
+              </div>
+            </div>
+            <!-- Constancia -->
+            <div class="tarjeta-item-constancia tarjeta-item">
+              <div class="tarjeta-icono"><span class="icon-constancia"></span></div>
+              <div class="tarjeta-titulo">CONSTANCIA</div>
+              <div class="tarjeta-cantidad bg-constancia">0</div>
+              <div class="tarjeta-datos">
+                <b>Última producción:</b> -<br>
+                <b>Lugar de almacenamiento:</b> -
+              </div>
+            </div>
+            <!-- Circular -->
+            <div class="tarjeta-item-circular tarjeta-item">
+              <div class="tarjeta-icono"><span class="icon-circular"></span></div>
+              <div class="tarjeta-titulo">CIRCULAR</div>
+              <div class="tarjeta-cantidad bg-circular">0</div>
+              <div class="tarjeta-datos">
+                <b>Última producción:</b> -<br>
+                <b>Lugar de almacenamiento:</b> -
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  <!-- SECCIÓN CREAR AÑO/CASO/SUBCASO -->
+  <div id="seccion-crear-caso" style="display:none;">
+    <div class="form-block">
+      <div class="form-title">¿Qué desea crear?</div>
+      <div class="menu-crear-opciones">
+        <button class="boton-opcion" id="btn-opcion-anio" onclick="mostrarCrearPaso('anio')">Año</button>
+        <button class="boton-opcion" id="btn-opcion-caso" onclick="mostrarCrearPaso('caso')">Caso</button>
+        <button class="boton-opcion" id="btn-opcion-subcaso" onclick="mostrarCrearPaso('subcaso')">Subcaso</button>
+      </div>
+      <!-- Formulario Año -->
+      <form id="form-crear-anio" style="display:none;" onsubmit="crearAnioGuiado();return false;">
+        <div class="field-block">
+          <label class="field-label" for="input-anio-guiado">Año</label>
+          <input id="input-anio-guiado" type="text" placeholder="Ej: 2025" autocomplete="off" />
+        </div>
+        <button class="boton" type="submit">Crear año</button>
+      </form>
+      <!-- Formulario Caso -->
+      <form id="form-crear-caso" style="display:none;" onsubmit="crearCasoGuiado();return false;">
+        <div class="field-block">
+          <label class="field-label" for="select-anio-guiado">Año</label>
+          <select id="select-anio-guiado"></select>
+        </div>
+        <div class="field-block">
+          <label class="field-label" for="input-caso-guiado">Caso</label>
+          <input id="input-caso-guiado" type="text" placeholder="Nombre del caso" autocomplete="off" />
+        </div>
+        <button class="boton" type="submit">Crear caso</button>
+      </form>
+      <!-- Formulario Subcaso -->
+      <form id="form-crear-subcaso" style="display:none;" onsubmit="crearSubcasoGuiado();return false;">
+        <div class="field-block">
+          <label class="field-label" for="select-anio-guiado2">Año</label>
+          <select id="select-anio-guiado2" onchange="llenarCasosParaSubcaso()"></select>
+        </div>
+        <div class="field-block">
+          <label class="field-label" for="select-caso-guiado">Caso</label>
+          <select id="select-caso-guiado"></select>
+        </div>
+        <div class="field-block">
+          <label class="field-label" for="input-subcaso-guiado">Subcaso</label>
+          <input id="input-subcaso-guiado" type="text" placeholder="Nombre del subcaso" autocomplete="off" />
+        </div>
+<!-- Pregunta: ¿Es un caso radicado en Dokus? -->
+<div class="field-block">
+  <label class="field-label">¿Es un caso radicado en Dokus?</label>
+  <select id="select-radicado-dokus" onchange="mostrarCampoRadicado()">
+    <option value="">Seleccione...</option>
+    <option value="si">Sí</option>
+    <option value="no">No</option>
+  </select>
+</div>
+<div class="field-block" id="campo-numero-radicado" style="display:none;">
+  <label class="field-label" for="input-numero-radicado">Número de radicado</label>
+  <input id="input-numero-radicado" type="text" placeholder="Ingrese el número de radicado" autocomplete="off" />
+</div>
+
+<!-- Pregunta: ¿Se tiene correo electrónico? -->
+<div class="field-block">
+  <label class="field-label">¿Se tiene correo electrónico?</label>
+  <select id="select-tiene-correo" onchange="mostrarCampoCorreo()">
+    <option value="">Seleccione...</option>
+    <option value="si">Sí</option>
+    <option value="no">No</option>
+  </select>
+</div>
+<div class="field-block" id="campo-correo-electronico" style="display:none;">
+  <label class="field-label" for="input-correo-electronico">Correo electrónico</label>
+  <input id="input-correo-electronico" type="email" placeholder="ejemplo@correo.com" autocomplete="off" />
+</div>
+        <button class="boton" type="submit">Crear subcaso</button>
+      </form>
+      <div id="crear-feedback-guiado"></div>
+      <div class="form-tip">
+        Elija si desea crear un año, caso o subcaso.<br>
+        Solo se solicitará la información necesaria.
+      </div>
+    </div>
+  </div>
+<!-- SECCIÓN CALENDARIO INSTITUCIONAL LIMPIA -->
+<div id="seccion-calendario" style="display:none;">
+<div class="calendario-wrap">
+  <div class="calendario-titulo">CALENDARIO INSTITUCIONAL</div>
+  <div id="calendario-alerta-recordatorios"></div>
+  <div id="lista-eventos-calendario"></div>
+</div>
+</div>
+<!-- Notificaciones: Campana flotante alineada a la izquierda del avatar de usuario -->
+<div id="widget-recordatorios-btn"
+     style="position:fixed;top:5px;right:250px;z-index:5000;cursor:pointer;display:none;">
+  <div id="widget-icono"
+       style="background:#fffbe6;border:2px solid #f6c700;color:#17406a;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px #aaa;position:relative;">
+    <!-- Campana SVG compatible HTA -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M12 22c1.3 0 2.402-1.025 2.495-2.308L14.5 19h-5l.005.692A2.495 2.495 0 0012 22zm6-6V11a6 6 0 10-12 0v5l-1.293 1.293A1 1 0 006 19h12a1 1 0 00.707-1.707L18 16z" fill="#e6a800"/>
+    </svg>
+    <span id="widget-badge"
+          style="position:absolute;top:-4px;right:-3px;background:#d90000;color:#fff;border-radius:10px;font-size:0.6em;padding:0 6px;display:none;border:2px solid #fff;">1</span>
+  </div>
+</div>
+<div id="widget-recordatorios-panel"
+     style="display:none;position:fixed;top:60px;right:160px;z-index:5001;background:#fffbe6;border:2px solid #f6c700;border-radius:13px;box-shadow:0 4px 24px #0002;max-width:340px;padding:18px 18px 12px 18px;">
+  <button onclick="document.getElementById('widget-recordatorios-panel').style.display='none'"
+          style="position:absolute;top:4px;right:8px;background:none;border:none;font-size:1.3em;cursor:pointer;color:#b88b06;">×</button>
+  <div id="widget-recordatorios-contenido"></div>
+</div>
+<!--SECCIÓN DE CREAR OFICIOS -->
+<!-- SECCIÓN CREAR OFICIOS MEJORADA -->
+<div id="seccion-crear-oficios" style="display:none;">
+  <div class="form-block form-block-oficio">
+    <div class="form-title form-title-oficio">
+      Crear Oficios
+    </div>
+    <!-- Paso 1: Selección de formato -->
+    <div id="paso1-elegir-formato">
+      <div style="text-align:left;">
+        <div class="paso-header"><span class="paso-numero">1</span> Elija un formato</div>
+        <input id="filtro-formatos" type="text" placeholder="Filtrar por nombre..." class="input-grande" onkeyup="filtrarFormatos()">
+        <div style="color:#b00020;margin-bottom:7px;">Formatos detectados: <span id="cantidad-formatos"></span></div>
+        <div id="lista-formatos" class="lista-formatos"></div>
+      </div>
+    </div>
+    <!-- Paso 2: Elegir destino y nombre -->
+    <div id="paso2-elegir-destino" style="display:none;max-width:440px;margin:0 auto;">
+      <div class="paso-header"><span class="paso-numero">2</span> Elija destino y nombre</div>
+      <div class="field-block">
+        <label><b>Año:</b></label>
+        <select id="select-anio-oficio" onchange="llenarCasosOficio()" class="input-grande"></select>
+      </div>
+      <div class="field-block">
+        <label><b>Caso:</b></label>
+        <select id="select-caso-oficio" onchange="llenarSubcasosOficio()" class="input-grande"></select>
+      </div>
+      <div class="field-block">
+        <label><b>Subcaso (opcional):</b></label>
+        <button type="button" id="boton-subcaso-oficio" class="boton" style="padding:10px 22px;font-size:1em;" onclick="abrirSelectorSubcasoOficio()">
+          Seleccionar
+        </button>
+<!-- Nota dinámica -->
+  <div id="nota-sin-subcaso"
+     style="margin:10px 0 0 0; color:#17406a; background:#eaf0f7; border-radius:6px; padding:6px 12px; font-size:0.97em;">
+  <b>Nota:</b> si no seleccionas ningún subcaso, se almacenará en <b id="nombre-caso-nota-oficio"></b>
+</div>
+        <div id="subcaso-oficio-seleccionado" style="margin-top:7px;color:#17406a;font-weight:600;font-size:1em;"></div>
+      </div>
+      <div id="panel-lateral-selector" style="position:fixed;top:0;right:-410px;width:360px;height:100vh;background:#fff;box-shadow:-2px 0 16px #17406a22;z-index:5000;transition:right 0.3s cubic-bezier(.7,.2,.3,1);display:flex;flex-direction:column;">
+        <div style="padding:20px 18px 12px 18px;font-size:1.13em;color:#17406a;font-weight:700;border-bottom:1px solid #eaf0f7;display:flex;justify-content:space-between;align-items:center;">
+          <span id="panel-lateral-titulo">Selecciona un subcaso</span>
+          <button id="cerrar-panel-selector-btn" style="background:none;border:none;font-size:1.3em;color:#b00020;cursor:pointer;font-weight:bold;line-height:1;">×</button>
+        </div>
+        <div style="padding:13px 18px 7px 18px;">
+          <input id="buscador-panel-selector" style="width:100%;padding:8px 12px;font-size:1em;border-radius:6px;border:1px solid #b7ccee;background:#f5f7fa;outline:none;box-sizing:border-box;" placeholder="Filtrar por nombre...">
+        </div>
+        <div id="lista-panel-selector" style="flex:1;overflow-y:auto;padding:0 12px 14px 12px;display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+      <div class="field-block">
+        <label><b>Nuevo nombre (sin extensión):</b></label>
+        <input id="nuevo-nombre-oficio" type="text" placeholder="Ejemplo: Petición Juan" class="input-grande">
+      </div>
+      <button class="boton boton-oficio" onclick="copiarYCrearOficio()">Crear archivo</button>
+      <button class="boton boton-secundario" onclick="volverPaso1()">Volver</button>
+    </div>
+    <!-- CABECERA OFICIO, SOLO PARA RESPUESTA A USUARIO Y VARIANTES -->
+    <div id="cabecera-oficio-preview" style="display:none;margin:36px 0 12px 0;">
+      <div class="oficio-cabecera" id="cabecera-oficio" style="margin-bottom:24px;">
+        <div>
+          Señor,<br>
+          <b id="nombre-carpeta-oficio"></b><br>
+          <span id="correo-oficio" style="display:none;">Correo electrónico <span id="correo-valor"></span><br></span>
+          <span id="radicado-oficio" style="display:none;">RAD. PGN DOKUS <span id="radicado-valor"></span><br></span>
+        </div>
+      </div>
+    </div>
+    <div class="form-tip form-tip-oficio">
+      <b>¿Cómo funciona?</b><br>
+      1. Elija un formato de la lista.<br>
+      2. Seleccione el destino (año/caso/subcaso) y escriba el nombre.<br>
+      3. Pulse "Crear archivo".<br>
+      <span style="color:#17406a;">¡Organice sus documentos en segundos!</span>
+    </div>
+  </div>
+</div>
+<!-- SECCIÓN CREAR OFICIOS V2 - WIZARD STYLE -->
+<div id="seccion-crear-oficios-v2" style="display:none;">
+  <div class="wizard-container">
+    <div class="wizard-header">
+      <h2 class="wizard-title">Crear Nuevo Oficio</h2>
+      <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+          <div class="wizard-step-number">1</div>
+          <div class="wizard-step-label">Formato</div>
+          <span class="wizard-step-tooltip">Seleccionar el tipo de documento base.</span>
+        </div>
+        <div class="wizard-step-connector" data-step-connect="1"></div>
+        <div class="wizard-step" data-step="2">
+          <div class="wizard-step-number">2</div>
+          <div class="wizard-step-label">Destino</div>
+          <span class="wizard-step-tooltip">Elegir la ubicación del nuevo oficio.</span>
+        </div>
+        <div class="wizard-step-connector" data-step-connect="2"></div>
+        <div class="wizard-step" data-step="3">
+          <div class="wizard-step-number">3</div>
+          <div class="wizard-step-label">Nombre</div>
+          <span class="wizard-step-tooltip">Asignar un nombre al archivo.</span>
+        </div>
+        <div class="wizard-step-connector" data-step-connect="3"></div>
+        <div class="wizard-step" data-step="4">
+          <div class="wizard-step-number">4</div>
+          <div class="wizard-step-label">Confirmar</div>
+          <span class="wizard-step-tooltip">Revisar y crear el oficio.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-content">
+      <!-- Paso 1: Selección de formato -->
+      <div class="wizard-step-content active" id="wizard-v2-step-1">
+        <h3 class="wizard-step-title">Paso 1: Elija un Formato</h3>
+        <input id="filtro-formatos-v2" type="text" placeholder="Filtrar por nombre..." class="input-grande input-grande-v2" onkeyup="filtrarFormatosV2()">
+        <div class="wizard-format-count">Formatos detectados: <span id="cantidad-formatos-v2">0</span></div>
+        <div id="lista-formatos-v2" class="lista-formatos lista-formatos-v2 wizard-format-list">
+          <!-- La lista de formatos se renderizará aquí por JS -->
+        </div>
+        <div class="wizard-navigation">
+          <button class="boton boton-wizard-next" onclick="wizardV2IrAPaso(2)">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- Paso 2: Elegir destino -->
+      <div class="wizard-step-content" id="wizard-v2-step-2">
+        <h3 class="wizard-step-title">Paso 2: Elija el Destino</h3>
+        <div class="field-block">
+          <label><b>Año:</b></label>
+          <select id="select-anio-oficio-v2" onchange="llenarCasosOficioV2()" class="input-grande input-grande-v2"></select>
+        </div>
+        <div class="field-block">
+          <label><b>Caso:</b></label>
+          <select id="select-caso-oficio-v2" onchange="llenarSubcasosOficioV2()" class="input-grande input-grande-v2"></select>
+        </div>
+        <div class="field-block">
+          <label><b>Subcaso (opcional):</b></label>
+          <button type="button" id="boton-subcaso-oficio-v2" class="boton boton-v2 wizard-select-button" onclick="abrirSelectorSubcasoOficioV2()">
+            Seleccionar Subcaso
+          </button>
+          <div id="subcaso-oficio-seleccionado-v2" class="wizard-selected-subcase"></div>
+        </div>
+        <div id="nota-sin-subcaso-v2" class="wizard-note">
+          <b>Nota:</b> si no seleccionas ningún subcaso, se almacenará en el caso <b id="nombre-caso-nota-oficio-v2"></b>.
+        </div>
+        <div class="wizard-navigation">
+          <button class="boton boton-wizard-prev" onclick="wizardV2IrAPaso(1)">Anterior</button>
+          <button class="boton boton-wizard-next" onclick="wizardV2IrAPaso(3)">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- Paso 3: Nuevo nombre -->
+      <div class="wizard-step-content" id="wizard-v2-step-3">
+        <h3 class="wizard-step-title">Paso 3: Asigne un Nombre al Archivo</h3>
+        <div class="field-block">
+          <label for="nuevo-nombre-oficio-v2"><b>Nuevo nombre (sin extensión):</b></label>
+          <input id="nuevo-nombre-oficio-v2" type="text" placeholder="Ej: Petición Respuesta Importante" class="input-grande input-grande-v2">
+        </div>
+        <div class="wizard-navigation">
+          <button class="boton boton-wizard-prev" onclick="wizardV2IrAPaso(2)">Anterior</button>
+          <button class="boton boton-wizard-next" onclick="wizardV2IrAPaso(4)">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- Paso 4: Confirmación y Creación -->
+      <div class="wizard-step-content" id="wizard-v2-step-4">
+        <h3 class="wizard-step-title">Paso 4: Confirmar y Crear</h3>
+        <div class="wizard-summary">
+          <h4>Resumen:</h4>
+          <p><strong>Formato Seleccionado:</strong> <span id="summary-formato-v2">-</span></p>
+          <p><strong>Año:</strong> <span id="summary-anio-v2">-</span></p>
+          <p><strong>Caso:</strong> <span id="summary-caso-v2">-</span></p>
+          <p><strong>Subcaso:</strong> <span id="summary-subcaso-v2">-</span></p>
+          <p><strong>Nombre del Archivo:</strong> <span id="summary-nombre-v2">-</span>.<span id="summary-extension-v2">ext</span></p>
+        </div>
+        <!-- Previsualización de cabecera (opcional, si se mantiene) -->
+        <div id="cabecera-oficio-preview-v2" style="display:none; margin:20px 0; padding:10px; border:1px dashed #ccc; background:#f9f9f9;">
+          <div class="oficio-cabecera oficio-cabecera-v2" id="cabecera-oficio-v2">
+            <div>
+              Señor,<br>
+              <b id="nombre-carpeta-oficio-v2-preview"></b><br>
+              <span id="correo-oficio-v2-preview" style="display:none;">Correo electrónico <span id="correo-valor-v2-preview"></span><br></span>
+              <span id="radicado-oficio-v2-preview" style="display:none;">RAD. PGN DOKUS <span id="radicado-valor-v2-preview"></span><br></span>
+            </div>
+          </div>
+        </div>
+        <div class="wizard-navigation">
+          <button class="boton boton-wizard-prev" onclick="wizardV2IrAPaso(3)">Anterior</button>
+          <button class="boton boton-oficio boton-oficio-v2 wizard-create-button" onclick="copiarYCrearOficioV2()">Crear Archivo</button>
+        </div>
+      </div>
+    </div> <!-- Fin wizard-content -->
+
+    <!-- Panel lateral para selección de subcaso (se mantiene la lógica, pero puede necesitar ajustes de estilo si se superpone mal) -->
+    <div id="panel-lateral-selector-v2" style="position:fixed;top:0;right:-410px;width:360px;height:100vh;background:#fff;box-shadow:-2px 0 16px #17406a22;z-index:6000;transition:right 0.3s cubic-bezier(.7,.2,.3,1);display:flex;flex-direction:column;">
+        <div style="padding:20px 18px 12px 18px;font-size:1.13em;color:#17406a;font-weight:700;border-bottom:1px solid #eaf0f7;display:flex;justify-content:space-between;align-items:center;">
+          <span id="panel-lateral-titulo-v2">Selecciona un subcaso</span>
+          <button id="cerrar-panel-selector-btn-v2" style="background:none;border:none;font-size:1.3em;color:#b00020;cursor:pointer;font-weight:bold;line-height:1;">×</button>
+        </div>
+        <div style="padding:13px 18px 7px 18px;">
+          <input id="buscador-panel-selector-v2" style="width:100%;padding:8px 12px;font-size:1em;border-radius:6px;border:1px solid #b7ccee;background:#f5f7fa;outline:none;box-sizing:border-box;" placeholder="Filtrar por nombre...">
+        </div>
+        <div id="lista-panel-selector-v2" style="flex:1;overflow-y:auto;padding:0 12px 14px 12px;display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+  </div> <!-- Fin wizard-container -->
+</div>
+
+<!-- SECCIÓN BUSCAR CASO (fragmento modificado) -->
+<div id="seccion-buscar-caso" style="display:none;">
+  <div class="form-block" style="max-width: 950px; width: 92vw; margin: 28px auto 0 auto;">
+    <div class="form-title">BUSCAR CASOS Y SUBCASOS</div>
+    <!-- Filtros horizontales -->
+    <div style="display: flex; gap: 10px; align-items: end; margin-bottom: 12px;">
+      <div class="field-block" style="min-width: 140px;">
+        <label for="input-buscar-anio" class="field-label">Año:</label>
+        <input id="input-buscar-anio" type="text" style="width: 100%;" placeholder="Ej: 2025" onkeyup="if(event.key==='Enter'){buscarCasoUI();}">
+      </div>
+      <div class="field-block" style="flex:2;">
+        <label for="input-buscar-nombre" class="field-label">Filtrar por nombre:</label>
+        <input id="input-buscar-nombre" type="text" style="width: 100%;" placeholder="Nombre de caso o subcaso..." onkeyup="filtrarCasosUI();">
+      </div>
+      <button class="boton boton-pequeno" onclick="buscarCasoUI()" style="height: 38px; margin:0 0 0 8px; display: flex; align-items: center; gap:5px;">
+        <span style="font-size:1.22em;vertical-align:middle;">🔍</span> Buscar
+      </button>
+    </div>
+    <!-- Tabla/lista de resultados -->
+    <div style="display: flex; gap: 24px;">
+      <div style="flex:2;">
+        <table id="tabla-casos" style="width:100%;border-collapse:separate;border-spacing:0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:#205085;color:#fff;">
+              <th style="padding:7px 8px;">Año</th>
+              <th>Nombre</th>
+              <th>Subcasos</th>
+              <th>Archivos</th>
+              <th>Último Word</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-casos">
+            <!-- Se llena por JS -->
+          </tbody>
+        </table>
+      </div>
+      <!-- Panel lateral de detalles -->
+      <div id="panel-detalles-caso" style="flex:1; min-width:280px; max-width:330px; background: #f8fbff; border-radius:12px; box-shadow: 0 2px 8px #17406a13; border:1.2px solid #e3eaf2; padding:18px 18px 14px 18px; display:none;">
+        <div id="detalle-titulo" style="font-weight:800; color:#17406a; font-size:1.13em;margin-bottom:8px;"></div>
+        <div id="detalle-cuerpo" style="font-size:0.97em; color:#205085; margin-bottom:12px;"></div>
+        <div id="detalle-archivos"></div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+  <button id="detalle-abrir-carpeta" class="boton boton-pequeno" style="flex:1;display:flex;align-items:center;gap:6px;"><span>📂</span> Abrir carpeta</button>
+  <button id="detalle-salir-caso" class="boton boton-pequeno" style="flex:1;display:flex;align-items:center;gap:6px;"><span>🚪</span> Salir</button>
+</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-tip" style="margin-top:14px;">
+      Elija el criterio de búsqueda y haga clic sobre un caso o subcaso para ver detalles.<br>
+      Los botones de acción permiten abrir la carpeta o iniciar un correo.
+    </div>
+  </div>
+</div>
+    </section>
+  </div>
+</div>
+<script src="https://unpkg.com/js-datepicker"></script>
+<script>
+function pad2(num) {
+  return (num < 10 ? '0' : '') + num;
+}
+
+// Función auxiliar: tipo oración (definida globalmente)
+function toSentenceCase(str) {
+  if (!str) return "";
+  str = String(str).toLowerCase(); // Asegurar que str es un string
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+  // Variables de sistema
+  var fso = new ActiveXObject("Scripting.FileSystemObject");
+  var shell = new ActiveXObject("WScript.Shell");
+  var desktop = shell.SpecialFolders("Desktop");
+  var nombreUsuario = "Jhonatan";
+  var rolUsuario = "Administrador";
+
+ //Paginaciones en "Buscar"
+  var paginaActualSubcasos = 1;
+  var subcasosPorPagina = 3;
+  var subcasosFiltrados = []; // Para guardar el resultado filtrado
+
+  var paginaActualCasosAnio = 1;
+  var casosPorPagina = 3;
+  var casosFiltradosAnio = [];
+
+  var paginaActualArchivosSubcaso = 1;
+  var archivosPorPagina = 3;
+  var archivosFiltradosSubcaso = [];
+
+  //VARIABLES PAGINACIÓN BÚSQUEDA AVANZADA
+  var resultadosBusquedaAvanzada = [];
+  var paginaActualBusquedaAvanzada = 1;
+  var resultadosPorPaginaAvanzada = 5;
+
+  //VARIABES SECCIÓN FORMATOS
+  var formatosDetectados = [];
+  var formatosFiltrados = [];
+  var paginaFormatos = 1;
+  var formatosPorPagina = 10;
+  var formatoSeleccionado = null;
+
+// Variables para la V2 de Crear Oficios
+var formatosDetectadosV2 = [];
+var formatosFiltradosV2 = [];
+var paginaFormatosV2 = 1;
+var formatosPorPaginaV2 = 10; // Puede ser diferente si se desea
+var formatoSeleccionadoV2 = null;
+var subcasoOficioSeleccionadoV2 = "";
+
+
+//asdasd
+var tipos = ["Oficio", "Concepto", "Acta", "Constancia", "Circular"];
+
+var tiposVariantes = [
+  { tipo: "Oficio", regex: /Oficio(?:s)?/i },
+  { tipo: "Concepto", regex: /Concepto(?:s)?/i },
+  { tipo: "Acta", regex: /Acta(?:s)?/i },
+  { tipo: "Constancia", regex: /Constancia(?:s)?/i },
+  { tipo: "Circular", regex: /Circular(?:es)?/i }
+];
+
+// Busca archivos .doc, .docx, .pdf, etc. Puedes ajustar si deseas otros formatos.
+var extensionesWord = /\.(docx?|pdf)$/i;
+
+
+
+
+  //VARIABLES PAGINACIÓN PANEL LATERAL
+// --- PAGINACIÓN PANEL LATERAL SUBCASOS (V1 - Original) ---
+var paginaActualPanelSubcasos = 1; // Esta variable podría ser reutilizada o renombrada si V1 también necesita paginación.
+var subcasosPanelFiltrados = []; // Para V1
+var subcasosPanelPorPagina = 8; // Para V1
+
+// --- PAGINACIÓN PANEL LATERAL SUBCASOS V2 ---
+var subcasosPanelListaCompletaV2 = []; // Guarda todos los subcasos cargados para el panel V2
+var paginaActualPanelSubcasosV2 = 1;
+var subcasosPanelPorPaginaV2 = 7; // Mostrar 7 elementos por página
+
+  // Sección y menú
+function mostrarSeccion(seccion) {
+  // Lista de IDs de todas las secciones que tienes en la aplicación
+  var secciones = [
+    "seccion-inicio",
+    "seccion-crear-caso",
+    "seccion-crear-oficios",
+    "seccion-crear-oficios-v2",
+    "seccion-buscar-caso",
+    "seccion-busqueda-avanzada",
+    "seccion-calendario" // <-- NUEVO: agrega el calendario
+  ];
+  // Oculta todas las secciones
+  for (var i = 0; i < secciones.length; i++) {
+    var sec = document.getElementById(secciones[i]);
+    if (sec) sec.style.display = "none";
+  }
+  // Lista de IDs de todos los botones de la barra lateral
+  var botones = [
+    "btn-inicio",
+    "btn-crear-caso",
+    "btn-crear-oficios",
+    "btn-crear-oficios-v2",
+    "btn-buscar-caso",
+    "btn-busqueda-avanzada",
+    "btn-calendario" // <-- NUEVO: agrega el botón del calendario
+  ];
+  // Quita 'active' de todos los botones
+  for (var i = 0; i < botones.length; i++) {
+    var btn = document.getElementById(botones[i]);
+    if (btn) btn.classList.remove("active");
+  }
+  // Muestra solo la sección correspondiente
+  var secActual = document.getElementById("seccion-" + seccion);
+  if (secActual) secActual.style.display = "block";
+  // Pone el botón en active
+  var btnActual = document.getElementById("btn-" + seccion);
+  if (btnActual) btnActual.classList.add("active");
+
+  // Si se selecciona "crear-oficios", recarga los formatos y combos de año/caso/subcaso
+  if (seccion === "crear-oficios") {
+    cargarFormatosOficios();
+    setTimeout(actualizarNotaCasoOficio, 100);
+  }
+  // Si se selecciona "crear-oficios-v2", recarga los formatos y combos para la V2
+  if (seccion === "crear-oficios-v2") {
+    wizardV2IrAPaso(1); // Asegura que siempre inicie en el paso 1
+    cargarFormatosOficiosV2(); // Carga inicial de formatos
+    // No es necesario llenar años/casos aquí, se hace al ir al paso 2 si es necesario.
+    // La nota de caso se actualiza dinámicamente.
+    // Limpiar campos al entrar a la sección
+    limpiarCamposCrearOficioV2(false); // false para no recargar formatos de nuevo
+  }
+}
+  function mostrarCrearPaso(tipo) {
+    var botones = ["btn-opcion-anio","btn-opcion-caso","btn-opcion-subcaso"];
+    for (var i=0; i<botones.length; i++) {
+      document.getElementById(botones[i]).classList.remove("selected");
+    }
+    var formularios = ["form-crear-anio","form-crear-caso","form-crear-subcaso"];
+    for (var i=0; i<formularios.length; i++) {
+      document.getElementById(formularios[i]).style.display="none";
+    }
+    document.getElementById('crear-feedback-guiado').innerHTML = "";
+    if(tipo==="anio") {
+      document.getElementById('btn-opcion-anio').classList.add('selected');
+      document.getElementById('form-crear-anio').style.display="block";
+    } else if(tipo==="caso") {
+      document.getElementById('btn-opcion-caso').classList.add('selected');
+      llenarAniosGuiado("select-anio-guiado");
+      document.getElementById('form-crear-caso').style.display="block";
+    } else if(tipo==="subcaso") {
+      document.getElementById('btn-opcion-subcaso').classList.add('selected');
+      llenarAniosGuiado("select-anio-guiado2");
+      document.getElementById('form-crear-subcaso').style.display="block";
+      setTimeout(llenarCasosParaSubcaso, 50);
+    }
+  }
+  function llenarAniosGuiado(idSelect) {
+    var select = document.getElementById(idSelect);
+    select.innerHTML = "";
+    var anios = [];
+    try {
+      var carpetaEnum = new Enumerator(fso.GetFolder(desktop).SubFolders);
+      for (; !carpetaEnum.atEnd(); carpetaEnum.moveNext()) {
+        var nombre = carpetaEnum.item().Name;
+        if (nombre.match(/^Año \d{4}$/)) { anios.push(nombre.replace("Año ", "")); }
+      }
+    } catch (e) {}
+    anios.sort();
+    for (var i=0; i<anios.length; i++) {
+      var opt = document.createElement("option");
+      opt.value = anios[i];
+      opt.text = anios[i];
+      select.appendChild(opt);
+    }
+  }
+  function llenarCasosParaSubcaso() {
+    var anio = document.getElementById('select-anio-guiado2').value;
+    var selectCaso = document.getElementById('select-caso-guiado');
+    selectCaso.innerHTML = "";
+    if (!anio) return;
+    var ruta = desktop + "\\Año " + anio;
+    if (!fso.FolderExists(ruta)) return;
+    var casos = [];
+    try {
+      var casoEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+      for (; !casoEnum.atEnd(); casoEnum.moveNext()) {
+        casos.push(casoEnum.item().Name);
+      }
+    } catch (e) {}
+    casos.sort();
+    for (var i=0; i<casos.length; i++) {
+      var opt = document.createElement("option");
+      opt.value = casos[i];
+      opt.text = casos[i];
+      selectCaso.appendChild(opt);
+    }
+  }
+  function crearAnioGuiado() {
+    var anio = document.getElementById('input-anio-guiado').value.trim();
+    var feedback = document.getElementById('crear-feedback-guiado');
+    feedback.innerHTML = "";
+    if (!anio.match(/^\d{4}$/)) {
+      feedback.innerHTML = '<div class="feedback-error">El año debe ser numérico de 4 dígitos.</div>';
+      return;
+    }
+    var ruta = desktop + "\\Año " + anio;
+    if (!fso.FolderExists(ruta)) {
+      fso.CreateFolder(ruta);
+      feedback.innerHTML = '<div class="feedback-success">Año creado correctamente: ' + ruta + '</div>';
+      document.getElementById('input-anio-guiado').value = "";
+    } else {
+      feedback.innerHTML = '<div class="feedback-error">El año ya existe: ' + ruta + '</div>';
+    }
+    llenarAniosGuiado("select-anio-guiado");
+    llenarAniosGuiado("select-anio-guiado2");
+    sincronizarTodo();
+  }
+  function crearCasoGuiado() {
+    var anio = document.getElementById('select-anio-guiado').value;
+    var caso = document.getElementById('input-caso-guiado').value.trim();
+    var feedback = document.getElementById('crear-feedback-guiado');
+    feedback.innerHTML = "";
+    if (!anio || !anio.match(/^\d{4}$/)) {
+      feedback.innerHTML = '<div class="feedback-error">Seleccione un año válido.</div>';
+      return;
+    }
+    if (!caso) {
+      feedback.innerHTML = '<div class="feedback-error">Ingrese el nombre del caso.</div>';
+      return;
+    }
+    if (caso.match(/[\\\/:*?"<>|]/)) {
+      feedback.innerHTML = '<div class="feedback-error">El caso contiene caracteres no permitidos.</div>';
+      return;
+    }
+    var ruta = desktop + "\\Año " + anio + "\\" + caso;
+    if (!fso.FolderExists(ruta)) {
+      fso.CreateFolder(ruta);
+      feedback.innerHTML = '<div class="feedback-success">Caso creado correctamente: ' + ruta + '</div>';
+      document.getElementById('input-caso-guiado').value = "";
+    } else {
+      feedback.innerHTML = '<div class="feedback-error">El caso ya existe: ' + ruta + '</div>';
+    }
+    llenarAniosGuiado("select-anio-guiado");
+    llenarAniosGuiado("select-anio-guiado2");
+    sincronizarTodo();
+  }
+  function crearSubcasoGuiado() {
+    var anio = document.getElementById('select-anio-guiado2').value;
+    var caso = document.getElementById('select-caso-guiado').value;
+    var subcaso = document.getElementById('input-subcaso-guiado').value.trim();
+    var feedback = document.getElementById('crear-feedback-guiado');
+    var nombreSubcaso = document.getElementById('input-subcaso-guiado').value;
+
+    // Nuevos campos: radicado en Dokus y correo electrónico
+    var radicadoDokus = document.getElementById('select-radicado-dokus').value;
+    var numeroRadicado = (radicadoDokus === "si") ? document.getElementById('input-numero-radicado').value.trim() : "";
+    var tieneCorreo = document.getElementById('select-tiene-correo').value;
+    var correoElectronico = (tieneCorreo === "si") ? document.getElementById('input-correo-electronico').value.trim() : "";
+
+    feedback.innerHTML = "";
+
+    if (!anio || !anio.match(/^\d{4}$/)) {
+      feedback.innerHTML = '<div class="feedback-error">Seleccione un año válido.</div>';
+      return;
+    }
+    if (!caso) {
+      feedback.innerHTML = '<div class="feedback-error">Seleccione un caso.</div>';
+      return;
+    }
+    if (!subcaso) {
+      feedback.innerHTML = '<div class="feedback-error">Ingrese el nombre del subcaso.</div>';
+      return;
+    }
+    if (subcaso.match(/[\\\/:*?"<>|]/)) {
+      feedback.innerHTML = '<div class="feedback-error">El subcaso contiene caracteres no permitidos.</div>';
+      return;
+    }
+    if (radicadoDokus === "si" && !numeroRadicado) {
+      feedback.innerHTML = '<div class="feedback-error">Ingrese el número de radicado.</div>';
+      return;
+    }
+    if (tieneCorreo === "si" && !correoElectronico) {
+      feedback.innerHTML = '<div class="feedback-error">Ingrese el correo electrónico.</div>';
+      return;
+    }
+
+    var ruta = desktop + "\\Año " + anio + "\\" + caso + "\\" + subcaso;
+    if (!fso.FolderExists(ruta)) {
+      fso.CreateFolder(ruta);
+
+      // Guardar los datos adicionales en un archivo oculto para uso posterior en "Crear oficios"
+      // Puedes cambiar el nombre y formato del archivo si lo deseas (usamos .json por facilidad)
+      try {
+        var datosExtra = {
+          radicado: (radicadoDokus === "si") ? numeroRadicado : null,
+          correo: (tieneCorreo === "si") ? correoElectronico : null
+        };
+        var archivoExtra = fso.CreateTextFile(ruta + "\\.datos_subcaso.json", true);
+        archivoExtra.Write(JSON.stringify(datosExtra));
+        archivoExtra.Close();
+      } catch (e) {
+        // Si falla el guardado, igual muestra éxito pero avisa del error en consola
+        try { console.log("No se pudo guardar datos extra del subcaso: " + e.message); } catch(err){}
+      }
+
+      feedback.innerHTML = '<div class="feedback-success">Subcaso creado correctamente: ' + ruta + '</div>';
+      document.getElementById('input-subcaso-guiado').value = "";
+      document.getElementById('select-radicado-dokus').value = "";
+      document.getElementById('campo-numero-radicado').style.display = "none";
+      document.getElementById('input-numero-radicado').value = "";
+      document.getElementById('select-tiene-correo').value = "";
+      document.getElementById('campo-correo-electronico').style.display = "none";
+      document.getElementById('input-correo-electronico').value = "";
+    } else {
+      feedback.innerHTML = '<div class="feedback-error">El subcaso ya existe: ' + ruta + '</div>';
+    }
+    llenarAniosGuiado("select-anio-guiado");
+    llenarAniosGuiado("select-anio-guiado2");
+    sincronizarTodo();
+}
+  // Barra de usuario
+  function cerrarSesion() { window.close(); }
+  function actualizarBarraUsuario() {
+    var avatar = document.getElementById('user-avatar');
+    var name = document.getElementById('user-name');
+    var role = document.getElementById('user-role');
+    if (avatar) avatar.textContent = (nombreUsuario && nombreUsuario.length > 0 ? nombreUsuario[0].toUpperCase() : '?');
+    if (name) name.textContent = nombreUsuario || "Usuario";
+    if (role) role.textContent = rolUsuario || "Usuario";
+  }
+  actualizarBarraUsuario();
+  // Fecha y hora actual
+  function actualizarFechaHora() {
+    var now = new Date();
+    var opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+    var fecha = now.toLocaleDateString('es-ES', opciones);
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    var hora =
+      (h < 10 ? '0' : '') + h + ':' +
+      (m < 10 ? '0' : '') + m + ':' +
+      (s < 10 ? '0' : '') + s;
+    var texto = '<span style="margin-right:10px;"><b>' + fecha + '</b></span> <span style="font-size:1em;">' + hora + '</span>';
+    var bars = document.getElementsByClassName('datetime-bar');
+    for (var i = 0; i < bars.length; i++) bars[i].innerHTML = texto;
+  }
+  setInterval(actualizarFechaHora, 1000);
+
+function abrirWord(rutaArchivo) {
+  if (fso.FileExists(rutaArchivo)) {
+    shell.Run('"' + rutaArchivo + '"', 1, false);
+  } else {
+    alert("El archivo no existe.");
+  }
+}
+
+// Utilidad: Devuelve un array de años disponibles (extrae "Año 2025" → 2025) del escritorio
+function obtenerAniosEnEscritorio() {
+  var anios = [];
+  try {
+    var carpetaEnum = new Enumerator(fso.GetFolder(desktop).SubFolders);
+    for (; !carpetaEnum.atEnd(); carpetaEnum.moveNext()) {
+      var nombre = carpetaEnum.item().Name;
+      if (/^Año \d{4}$/.test(nombre)) anios.push(Number(nombre.substr(4)));
+    }
+  } catch(e) {}
+  anios.sort(function(a,b){return b-b;});
+  return anios;
+}
+
+// Mostrar calendario visual de años para los campos de búsqueda
+function mostrarCalendarioBuscarAnio(inputId, callbackSeleccion) {
+  var input = document.getElementById(inputId);
+  var popupId = "popup-calendario-" + inputId;
+  var popup = document.getElementById(popupId);
+
+  // Si ya está visible, ocultar
+  if (popup.style.display === "block") {
+    popup.style.display = "none";
+    popup.innerHTML = "";
+    return;
+  }
+  // Obtener años
+  var aniosDisponibles = obtenerAniosEnEscritorio();
+  var yearsPerPage = 3;
+  var pagina = 0;
+  var totalPaginas = Math.ceil(aniosDisponibles.length / yearsPerPage);
+
+  function renderPagina(pag) {
+    pagina = pag;
+    var inicio = pagina * yearsPerPage;
+    var fin = Math.min(inicio + yearsPerPage, aniosDisponibles.length);
+    var html = '<div style="position:absolute;top:0;left:0;background:#fff;border:1px solid #ccc;box-shadow:0 4px 18px #2222;border-radius:6px;padding:18px 10px 8px 10px;min-width:220px;">';
+    html += '<div style="font-weight:bold;font-size:1.1em;text-align:center;margin-bottom:12px;">Seleccione un año</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
+    for (var i=inicio; i<fin; i++) {
+      let anio = aniosDisponibles[i];
+      html += '<div style="padding:10px 0;text-align:center;border-radius:6px;cursor:pointer;background:#f8f8f8;font-size:1.07em;margin-bottom:2px" onmouseover="this.style.background=\'#a3d06c\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'#f8f8f8\';this.style.color=\'#222\'" onclick="seleccionarAnioCalendario(\''+inputId+'\','+anio+',\''+popupId+'\', '+(callbackSeleccion?1:0)+')">' + anio + '</div>';
+    }
+    html += '</div>';
+    html += '<div style="text-align:center;margin-top:10px;">';
+    if (pagina > 0) html += '<button onclick="document.getElementById(\''+popupId+'\')._render('+ (pagina-1) +');event.stopPropagation();">Anterior</button> ';
+    html += 'Página '+ (pagina+1) +' de '+ totalPaginas;
+    if (pagina < totalPaginas-1) html += ' <button onclick="document.getElementById(\''+popupId+'\')._render('+ (pagina+1) +');event.stopPropagation();">Siguiente</button>';
+    html += '</div>';
+    html += '<div style="text-align:center;margin-top:8px;"><button onclick="document.getElementById(\''+popupId+'\').style.display=\'none\';document.getElementById(\''+popupId+'\').innerHTML=\'\';">Cerrar</button></div>';
+    html += '</div>';
+    popup.innerHTML = html;
+    popup.style.display = "block";
+    popup._render = renderPagina;
+  }
+  renderPagina(0);
+}
+
+// Selecciona año desde el calendario visual, lo pone en el input y dispara el callback si hay
+function seleccionarAnioCalendario(inputId, anio, popupId, callbackFlag) {
+  var input = document.getElementById(inputId);
+  input.value = anio;
+  var popup = document.getElementById(popupId);
+  popup.style.display = "none";
+  popup.innerHTML = "";
+  // Si hay que disparar un callback (ej: buscarPorAnio, llenarCasosBuscarCaso, llenarCasosBuscarSubcaso)
+  if (callbackFlag) {
+    if (inputId === "buscar-anio-flex-input") buscarPorAnio();
+    else if (inputId === "buscar-anio-caso-input") llenarCasosBuscarCaso();
+    else if (inputId === "buscar-anio-subcaso-input") llenarCasosBuscarSubcaso();
+  }
+}
+
+function autoSeleccionarAnioActual(inputId, callbackSeleccion) {
+  var hoy = new Date();
+  var anioActual = hoy.getFullYear().toString();
+  var carpetaAnio = "Año " + anioActual;
+  try {
+    var existe = false;
+    var carpetaEnum = new Enumerator(fso.GetFolder(desktop).SubFolders);
+    for (; !carpetaEnum.atEnd(); carpetaEnum.moveNext()) {
+      var nombre = carpetaEnum.item().Name;
+      if (nombre === carpetaAnio) { existe = true; break; }
+    }
+    if (existe) {
+      document.getElementById(inputId).value = anioActual;
+      if (typeof callbackSeleccion === "function") callbackSeleccion();
+    }
+  } catch(e) {}
+}
+
+// Cambia los scripts de los select por los nuevos inputs en buscar (en tu inicialización)
+function getBuscarAnio() {
+  return document.getElementById("buscar-anio-flex-input").value;
+}
+function getBuscarAnioCaso() {
+  return document.getElementById("buscar-anio-caso-input").value;
+}
+function getBuscarAnioSubcaso() {
+  return document.getElementById("buscar-anio-subcaso-input").value;
+}
+
+//Funciones sección formato
+// Al abrir la sección, debes llamar a esta función:
+function cargarFormatosOficios() {
+  paginaFormatos = 1;
+  formatoSeleccionado = null;
+  document.getElementById("filtro-formatos").value = "";
+  formatosDetectados = [];
+  formatosFiltrados = [];
+  
+  var rutaFormatos = desktop + "\\Formatos";
+  try {
+    if (fso.FolderExists(rutaFormatos)) {
+      var formatosEnum = new Enumerator(fso.GetFolder(rutaFormatos).Files);
+      for (; !formatosEnum.atEnd(); formatosEnum.moveNext()) {
+        var archivo = formatosEnum.item();
+        var nombre = archivo.Name;
+        if (nombre.match(/\.(docx?|xlsx?|pdf|odt)$/i)) {
+          formatosDetectados.push({
+            Nombre: nombre,
+            Ruta: archivo.Path
+          });
+        }
+      }
+    }
+  } catch (e) {
+    formatosDetectados = [];
+  }
+  formatosFiltrados = formatosDetectados.slice();
+  // ACTUALIZAR el contador aquí antes de renderizar
+  document.getElementById("cantidad-formatos").textContent = formatosFiltrados.length;
+  renderizarListaFormatos();
+}
+
+function seleccionarFormatoOficio(nombre) {
+  formatoSeleccionado = nombre;
+  cargarFormatosOficios(); // Esto fuerza a refrescar la lista y resaltar el seleccionado
+}
+
+
+
+
+
+function cargarCasosOficio() {
+  var anio = document.getElementById("select-anio-oficio").value;
+  var sel = document.getElementById("select-caso-oficio");
+  sel.innerHTML = "";
+  if (!anio) {
+    setDebug("No hay año seleccionado");
+    return;
+  }
+  var ruta = desktop + "\\Año " + anio;
+  setDebug("Buscando en: " + ruta);
+  var casos = [];
+  try {
+    if (fso.FolderExists(ruta)) {
+      var casosEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+      for (; !casosEnum.atEnd(); casosEnum.moveNext()) {
+        var nombreCaso = casosEnum.item().Name;
+        casos.push(nombreCaso);
+      }
+    } else {
+      setDebug("No existe la carpeta: " + ruta);
+    }
+  } catch(e) {
+    setDebug("Error leyendo casos: " + e.message);
+  }
+  if (casos.length === 0) {
+    setDebug("No hay casos encontrados en: " + ruta);
+  } else {
+    setDebug("Casos encontrados: " + casos.join(", "));
+    for (var i = 0; i < casos.length; i++) {
+      var opt = document.createElement("option");
+      opt.value = casos[i];
+      opt.text = casos[i];
+      sel.appendChild(opt);
+    }
+  }
+  cargarSubcasosOficio();
+}
+
+function cargarSubcasosOficio() {
+  var anio = document.getElementById("select-anio-oficio").value;
+  var caso = document.getElementById("select-caso-oficio").value;
+  var sel = document.getElementById("select-subcaso-oficio");
+  sel.innerHTML = "";
+  var opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.text = "(Sin subcaso)";
+  sel.appendChild(opt0);
+  if (!anio || !caso) return;
+  var ruta = desktop + "\\Año " + anio + "\\" + caso;
+  var subcasos = [];
+  try {
+    var subEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+    for (; !subEnum.atEnd(); subEnum.moveNext()) {
+      subcasos.push(subEnum.item().Name);
+    }
+  } catch(e) {}
+  subcasos.sort();
+  for (var i = 0; i < subcasos.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = subcasos[i];
+    opt.text = subcasos[i];
+    sel.appendChild(opt);
+  }
+}
+
+// Filtrar y paginar
+ function filtrarFormatos() {
+  var filtro = document.getElementById("filtro-formatos").value.trim().toLowerCase();
+  formatosFiltrados = formatosDetectados.filter(function(f) {
+    return f.Nombre.toLowerCase().indexOf(filtro) !== -1;
+  });
+  paginaFormatos = 1;
+  renderizarListaFormatos();
+  formatoSeleccionado = null;
+}
+
+// Render paginación
+function renderizarListaFormatos() {
+  var div = document.getElementById('lista-formatos');
+  div.innerHTML = "";
+  if (formatosFiltrados.length === 0) {
+    div.innerHTML = "<span style='color:#888;'>No se encontraron formatos.</span>";
+    document.getElementById("cantidad-formatos").textContent = "0";
+    return;
+  }
+  var totalPaginas = Math.ceil(formatosFiltrados.length / formatosPorPagina);
+  if (paginaFormatos < 1) paginaFormatos = 1;
+  if (paginaFormatos > totalPaginas) paginaFormatos = totalPaginas;
+  var inicio = (paginaFormatos - 1) * formatosPorPagina;
+  var fin = inicio + formatosPorPagina;
+  var formatosPagina = formatosFiltrados.slice(inicio, fin);
+
+  for (var i = 0; i < formatosPagina.length; i++) {
+    var nombre = String(formatosPagina[i].Nombre);
+    div.innerHTML +=
+      "<a href='#' onclick='seleccionarFormato(" + (inicio + i) + ");return false;'"
+      + (formatoSeleccionado && formatoSeleccionado.Nombre === nombre ? " style='font-weight:bold;color:#214c7b;display:block;margin-bottom:5px;'" : " style='display:block;margin-bottom:5px;'")
+      + ">" + nombre + "</a>";
+  }
+
+  // Controles de paginación
+  if (totalPaginas > 1) {
+    var paginador = "<div class='pagina' style='margin-top:12px;text-align:center;'>";
+    for (var p = 1; p <= totalPaginas; p++) {
+      paginador += "<button"
+        + (p == paginaFormatos ? " class='active'" : "")
+        + " onclick='paginaFormatos=" + p + ";renderizarListaFormatos();' style='margin:0 2px;padding:2px 8px;border-radius:5px;border:1px solid #bccce7;'>" + p + "</button>";
+    }
+    paginador += "</div>";
+    div.innerHTML += paginador;
+  }
+  document.getElementById("cantidad-formatos").textContent = formatosFiltrados.length;
+}
+
+
+function seleccionarFormato(idx) {
+  formatoSeleccionado = formatosFiltrados[idx];
+  document.getElementById("paso1-elegir-formato").style.display = "none";
+  document.getElementById("paso2-elegir-destino").style.display = "block";
+  llenarAniosOficio();
+  document.getElementById("nuevo-nombre-oficio").value = "";
+}
+
+
+function irPaginaFormatos(pag) {
+  paginaFormatos = pag;
+  renderFormatosPaginados();
+}
+
+// Cargar años/casos/subcasos (esto es un ejemplo, debes adaptar a tu lógica)
+function cargarDestinoOficios() {
+  // Llenar select de año con rango y seleccionar el actual
+  var selectAnio = document.getElementById("select-anio-oficio");
+  selectAnio.innerHTML = "";
+  var anioActual = (new Date()).getFullYear();
+  for (var a = anioActual + 1; a >= 2000; a--) {
+    var opt = document.createElement("option");
+    opt.value = a;
+    opt.textContent = a;
+    selectAnio.appendChild(opt);
+  }
+  // Selecciona automático el año actual
+  selectAnio.value = anioActual;
+
+  // Aquí debes cargar los casos y subcasos basados en el año seleccionado
+  // Ejemplo básico:
+  cargarCasosOficio(anioActual);
+  selectAnio.onchange = function() {
+    cargarCasosOficio(this.value);
+  }
+}
+
+function cargarCasosOficio(anio) {
+  var selectCaso = document.getElementById("select-caso-oficio");
+  selectCaso.innerHTML = "";
+  var rutaCasos = desktop + "\\Año " + anio;
+  try {
+    var carpeta = fso.GetFolder(rutaCasos);
+    var casosEnum = new Enumerator(carpeta.SubFolders);
+    for (; !casosEnum.atEnd(); casosEnum.moveNext()) {
+      var nombreCaso = casosEnum.item().Name;
+      var opt = document.createElement("option");
+      opt.value = nombreCaso;
+      opt.textContent = nombreCaso;
+      selectCaso.appendChild(opt);
+    }
+  } catch(e) {
+    // No hay casos para ese año
+  }
+  // Cargar subcasos para el primer caso
+  if (selectCaso.options.length > 0) {
+    cargarSubcasosOficio(anio, selectCaso.value);
+  } else {
+    var selectSubcaso = document.getElementById("select-subcaso-oficio");
+    selectSubcaso.innerHTML = "<option value=''> (Sin subcaso) </option>";
+  }
+  selectCaso.onchange = function() {
+    cargarSubcasosOficio(anio, this.value);
+  }
+}
+
+function cargarSubcasosOficio(anio, caso) {
+  var selectSubcaso = document.getElementById("select-subcaso-oficio");
+  selectSubcaso.innerHTML = "<option value=''> (Sin subcaso) </option>";
+  var rutaSubcasos = desktop + "\\Año " + anio + "\\" + caso;
+  try {
+    var carpeta = fso.GetFolder(rutaSubcasos);
+    var subcasosEnum = new Enumerator(carpeta.SubFolders);
+    for (; !subcasosEnum.atEnd(); subcasosEnum.moveNext()) {
+      var nombreSubcaso = subcasosEnum.item().Name;
+      var opt = document.createElement("option");
+      opt.value = nombreSubcaso;
+      opt.textContent = nombreSubcaso;
+      selectSubcaso.appendChild(opt);
+    }
+  } catch(e) {
+    // No hay subcasos
+  }
+}
+
+
+function crearRutaCompleta(ruta) {
+  if (fso.FolderExists(ruta)) return;
+
+  var partes = ruta.split("\\");
+  var actual = partes[0];
+  // Para rutas UNC (\\servidor\carpeta)
+  if (actual === "") {
+    actual = "\\" + "\\" + partes[2];
+    var i = 3;
+  } else {
+    var i = 1;
+  }
+  for (; i < partes.length; i++) {
+    actual += "\\" + partes[i];
+    if (!fso.FolderExists(actual)) {
+      fso.CreateFolder(actual);
+    }
+  }
+}
+function copiarYCrearOficio() {
+  // 1. Validaciones iniciales
+  var anio = document.getElementById("select-anio-oficio").value;
+  var caso = document.getElementById("select-caso-oficio").value;
+  var subcaso = subcasoOficioSeleccionado ? subcasoOficioSeleccionado.trim() : "";
+  var nombreNuevo = document.getElementById("nuevo-nombre-oficio").value.trim();
+
+  if (!anio || !caso || !nombreNuevo || !formatoSeleccionado) {
+    alert("Completa todos los datos.");
+    return;
+  }
+  if (/[\\\/:*?"<>|]/.test(nombreNuevo)) {
+    alert("El nombre no puede tener caracteres especiales.");
+    return;
+  }
+
+  // 2. Construcción de ruta destino
+  var rutaDestino = desktop + "\\Año " + anio + "\\" + caso;
+  if (subcaso) rutaDestino += "\\" + subcaso;
+
+  // 3. Crear ruta solo si no existe
+  if (!fso.FolderExists(rutaDestino)) {
+    crearRutaCompleta(rutaDestino);
+  }
+
+  if (!formatoSeleccionado.Ruta || !formatoSeleccionado.Nombre) {
+    alert("Debe seleccionar un formato válido.");
+    return;
+  }
+
+  var ext = formatoSeleccionado.Nombre.split('.').pop();
+  var rutaFinal = rutaDestino + "\\" + nombreNuevo + "." + ext;
+
+  // 4. Leer datos del subcaso si existen
+  var datosSubcaso = { nombre: subcaso, correo: "", radicado: "" };
+  var rutaDatos = rutaDestino + "\\.datos_subcaso.json";
+  if (fso.FileExists(rutaDatos)) {
+    try {
+      var f = fso.OpenTextFile(rutaDatos, 1);
+      var json = f.ReadAll();
+      f.Close();
+      datosSubcaso = JSON.parse(json);
+      datosSubcaso.nombre = subcaso;
+    } catch (e) {
+      datosSubcaso.nombre = subcaso;
+    }
+  }
+
+  // Función auxiliar: tipo oración
+function toSentenceCase(str) {
+    if (!str) return "";
+    str = str.toLowerCase();
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  if (ext === "docx" || ext === "doc") {
+    try {
+      var word = new ActiveXObject("Word.Application");
+      word.Visible = false;
+      var doc = word.Documents.Add(formatoSeleccionado.Ruta);
+
+      function reemplazarTexto(buscar, reemplazo, opciones) {
+        var range = doc.Content;
+        range.Find.ClearFormatting();
+        range.Find.Text = buscar;
+        range.Find.Replacement.ClearFormatting();
+        // Opciones de formato
+        if (opciones && opciones.bold) {
+          range.Find.Replacement.Font.Bold = true;
+        } else {
+          range.Find.Replacement.Font.Bold = false;
+        }
+        // Controla el formato de mayúsculas:
+        range.Find.Replacement.Font.AllCaps = (opciones && opciones.uppercase) ? true : false;
+        // El texto de reemplazo va como debe ser
+        range.Find.Replacement.Text = reemplazo || "";
+        // wdReplaceAll = 2
+        range.Find.Execute(buscar, false, false, false, false, false, true, 1, false, reemplazo || "", 2);
+      }
+
+      // NOMBRE DE CARPETA (mayúsculas y negrita)
+      reemplazarTexto("NOMBRE DE CARPETA", datosSubcaso.nombre, { bold: true, uppercase: true });
+      // nombre de carpeta (tipo oración, sin negrita, sin mayúsculas)
+      reemplazarTexto("nombre de carpeta", toSentenceCase(datosSubcaso.nombre), { bold: false, uppercase: false });
+      // NUMERO DE RADICADO
+      reemplazarTexto("NUMERO DE RADICADO", datosSubcaso.radicado, { bold: false, uppercase: false });
+      // CORREO
+      reemplazarTexto("CORREO", datosSubcaso.correo, { bold: false, uppercase: false });
+
+      doc.SaveAs(rutaFinal);
+      doc.Close(false);
+      word.Quit();
+
+      shell.Run('"' + rutaFinal + '"');
+      alert("Archivo creado correctamente.");
+      volverPaso1();
+      limpiarCamposCrearOficio();
+      sincronizarTodo();
+      return;
+    } catch(e) {
+      alert("Error al crear el Word: " + e.message);
+      return;
+    }
+  }
+
+  // ... [resto igual] ...
+  // 6. Copia normal para otros formatos
+  try {
+    fso.CopyFile(formatoSeleccionado.Ruta, rutaFinal, false);
+    shell.Run('"' + rutaFinal + '"');
+    alert("Archivo creado correctamente.");
+    volverPaso1();
+    limpiarCamposCrearOficio();
+    sincronizarTodo();
+  } catch(e) {
+    alert("Error al copiar el archivo: " + e.message);
+  }
+}
+// Función para limpiar los campos del formulario de Crear Oficios
+function limpiarCamposCrearOficio() {
+  var selectAnio = document.getElementById('select-anio-oficio');
+  var selectCaso = document.getElementById('select-caso-oficio');
+  var subcasoDiv = document.getElementById('subcaso-oficio-seleccionado');
+  var nuevoNombre = document.getElementById('nuevo-nombre-oficio');
+  var botonSubcaso = document.getElementById('boton-subcaso-oficio');
+
+  if (selectAnio) selectAnio.selectedIndex = 0;
+  if (selectCaso) selectCaso.selectedIndex = 0;
+  if (subcasoDiv) subcasoDiv.innerHTML = "";
+  if (nuevoNombre) nuevoNombre.value = "";
+  if (botonSubcaso) botonSubcaso.style.display = "";
+  // Si usas una variable global para subcasoOficioSeleccionado, también límpiala:
+  if (typeof subcasoOficioSeleccionado !== "undefined") {
+    subcasoOficioSeleccionado = "";
+  }
+}
+
+//ASDASKJ
+
+  function mostrarPaso2() {
+    if (!formatoSeleccionado) return;
+    document.getElementById("paso1-elegir-formato").style.display = "none";
+    document.getElementById("paso2-elegir-destino").style.display = "block";
+    // Aquí puedes cargar los selects o limpiar campos
+  }
+
+function volverPaso1() {
+  document.getElementById("paso1-elegir-formato").style.display = "block";
+  document.getElementById("paso2-elegir-destino").style.display = "none";
+  formatoSeleccionado = null;
+  renderizarListaFormatos();
+}
+
+  // Modifica tu renderizado de lista de formatos:
+ function renderizarListaFormatos() {
+    var div = document.getElementById('lista-formatos');
+    div.innerHTML = "";
+    if (formatosFiltrados.length === 0) {
+      div.innerHTML = "<span style='color:#888;'>No se encontraron formatos.</span>";
+      return;
+    }
+    // Paginación
+    var totalPaginas = Math.ceil(formatosFiltrados.length / formatosPorPagina);
+    if (paginaFormatos < 1) paginaFormatos = 1;
+    if (paginaFormatos > totalPaginas) paginaFormatos = totalPaginas;
+    var inicio = (paginaFormatos - 1) * formatosPorPagina;
+    var fin = inicio + formatosPorPagina;
+    var formatosPagina = formatosFiltrados.slice(inicio, fin);
+
+    for (var i = 0; i < formatosPagina.length; i++) {
+      var a = document.createElement("a");
+      a.textContent = formatosPagina[i].Nombre;
+      a.style.cursor = "pointer";
+      a.onclick = (function(idx) { return function() { seleccionarFormato(inicio + idx); }; })(i);
+      if (formatoSeleccionado && formatoSeleccionado.Nombre === formatosPagina[i].Nombre) {
+        a.classList.add('selected');
+      }
+      div.appendChild(a);
+    }
+
+    // Controles de paginación
+    if (totalPaginas > 1) {
+      var paginador = document.createElement("div");
+      paginador.className = "pagina";
+      for (var p = 1; p <= totalPaginas; p++) {
+        var btn = document.createElement("button");
+        btn.textContent = p;
+        if (p == paginaFormatos) btn.className = "active";
+        btn.onclick = (function(pg) { return function() { paginaFormatos = pg; renderizarListaFormatos(); }; })(p);
+        paginador.appendChild(btn);
+      }
+      div.appendChild(paginador);
+    }
+  }
+
+function llenarAniosOficio() {
+  var select = document.getElementById("select-anio-oficio");
+  if (!select) return;
+  select.innerHTML = "";
+  var anios = [];
+  try {
+    var carpetaEnum = new Enumerator(fso.GetFolder(desktop).SubFolders);
+    for (; !carpetaEnum.atEnd(); carpetaEnum.moveNext()) {
+      var nombre = carpetaEnum.item().Name;
+      if (nombre.match(/^Año \d{4}$/)) anios.push(nombre.replace("Año ", ""));
+    }
+  } catch (e) {}
+  anios.sort();
+  for (var i=0; i<anios.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = anios[i];
+    opt.text = anios[i];
+    select.appendChild(opt);
+  }
+  llenarCasosOficio();
+}
+
+function llenarCasosOficio() {
+  var anio = document.getElementById("select-anio-oficio").value;
+  var selectCaso = document.getElementById('select-caso-oficio');
+  if (!selectCaso) return;
+  selectCaso.innerHTML = "";
+  if (!anio) return;
+  var ruta = desktop + "\\Año " + anio;
+  if (!fso.FolderExists(ruta)) return;
+  var casos = [];
+  try {
+    var casoEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+    for (; !casoEnum.atEnd(); casoEnum.moveNext()) {
+      casos.push(casoEnum.item().Name);
+    }
+  } catch(e) {}
+  casos.sort();
+  for (var i=0; i<casos.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = casos[i];
+    opt.text = casos[i];
+    selectCaso.appendChild(opt);
+  }
+  // ASOCIA EL EVENTO ONCHANGE AQUÍ:
+  selectCaso.onchange = actualizarNotaCasoOficio;
+  llenarSubcasosOficio();
+  actualizarNotaCasoOficio();
+}
+
+function llenarSubcasosOficio() {
+  var anio = document.getElementById("select-anio-oficio").value;
+  var caso = document.getElementById("select-caso-oficio").value;
+  var selectSubcaso = document.getElementById("select-subcaso-oficio");
+  if (!selectSubcaso) return;
+  selectSubcaso.innerHTML = "<option value=''> (Sin subcaso) </option>";
+  if (!anio || !caso) return;
+  var ruta = desktop + "\\Año " + anio + "\\" + caso;
+  if (!fso.FolderExists(ruta)) return;
+  var subcasos = [];
+  try {
+    var subEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+    for (; !subEnum.atEnd(); subEnum.moveNext()) {
+      subcasos.push(subEnum.item().Name); // <-- AQUÍ
+    }
+  } catch(e) {}
+  subcasos.sort();
+  for (var i=0; i<subcasos.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = subcasos[i]; // <-- AQUÍ
+    opt.text = subcasos[i];  // <-- AQUÍ
+    selectSubcaso.appendChild(opt);
+  }
+}
+
+
+// Panel lateral universal para seleccionar subcaso/caso (HTA compatible)
+var _callbackSeleccionUniversal = null;
+var _elementosPanelActuales = [];
+function abrirPanelSelector(elementos, titulo, callback) {
+  _elementosPanelActuales = elementos.slice();
+  _callbackSeleccionUniversal = callback;
+  document.getElementById('buscador-panel-selector').value = ''; // Asume que este es el ID para V1
+  document.getElementById('panel-lateral-titulo').innerText = titulo || 'Selecciona un elemento'; // Asume V1
+  mostrarElementosEnPanelSelector(''); // Asume V1
+  mostrarPanelLateralSelector(true); // Asume V1
+  setTimeout(function(){document.getElementById('buscador-panel-selector').focus();}, 100); // Asume V1
+}
+
+function mostrarPanelLateralSelector(abrir) {
+  var panel = document.getElementById('panel-lateral-selector'); // Asume V1
+  if (abrir) {
+    if (panel.className.indexOf('abierto') === -1) {
+      panel.className += (panel.className ? ' ' : '') + 'abierto';
+    }
+    panel.style.right = "0";
+  } else {
+    panel.className = panel.className.replace(/\babierto\b/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+|\s+$/g, '');
+    panel.style.right = "-410px";
+  }
+}
+
+document.getElementById('cerrar-panel-selector-btn').onclick = function(){ // Asume V1
+  mostrarPanelLateralSelector(false);
+  _callbackSeleccionUniversal = null;
+};
+// Este if/else para addEventListener/attachEvent es para el panel V1. Se necesitará uno similar para V2.
+if (document.attachEvent) {
+  document.attachEvent('onkeydown', function(e){
+    e = e || window.event;
+    var key = e.keyCode;
+    // Cierra CUALQUIER panel lateral abierto con Escape. Podríamos hacerlo más específico si es necesario.
+    if (key === 27) {
+        mostrarPanelLateralSelector(false);
+        mostrarPanelLateralSelectorV2(false);
+    }
+  });
+} else if (document.addEventListener) {
+  document.addEventListener('keydown', function(e){
+    if ((e.key && e.key === "Escape") || (e.keyCode && e.keyCode === 27)) {
+        mostrarPanelLateralSelector(false);
+        mostrarPanelLateralSelectorV2(false);
+    }
+  });
+}
+document.getElementById('buscador-panel-selector').oninput = function() { // Asume V1
+  mostrarElementosEnPanelSelector(this.value);
+};
+
+function mostrarElementosEnPanelSelector(filtro) { // Para V1
+  var lista = document.getElementById('lista-panel-selector'); // Asume V1
+  lista.innerHTML = '';
+  filtro = filtro.toLowerCase();
+  var hay = false;
+  for (var i = 0; i < _elementosPanelActuales.length; i++) {
+    var el = _elementosPanelActuales[i];
+    if (filtro && el.nombre.toLowerCase().indexOf(filtro) === -1) continue;
+    hay = true;
+    var div = document.createElement('div');
+    div.className = 'tarjeta-panel-selector'; // Estilo genérico, ok
+    // Estilos en línea podrían quedarse si son genéricos o se ajustan con clases específicas de V1/V2 si es necesario
+    div.style = [
+      'background:#eaf0f7',
+      'border-radius:8px',
+      'padding:12px 13px',
+      'box-shadow:0 2px 8px #17406a13',
+      'display:block',
+      'cursor:pointer',
+      'transition:background 0.14s,border 0.16s',
+      'border:1px solid #b7ccee',
+      'font-size:1em',
+      'margin-bottom:8px',
+      'user-select:none',
+      'max-width:340px',
+      'width:95%',
+      'box-sizing:border-box',
+      'line-height:1.5'
+    ].join(';');
+    div.innerHTML =
+      '<div style="font-weight:600;color:#17406a;margin-bottom:3px;pointer-events:none;white-space:normal;word-break:normal;overflow-wrap:break-word;line-height:1.5;max-width:99%;">' +
+        el.nombre +
+      '</div>' +
+      '<div style="font-size:.96em;color:#285080;pointer-events:none;line-height:1.5;">Words almacenados: ' + el.cantidadWords + '</div>';
+    div.onmousedown = (function(nombre){
+      return function(e) {
+        e.preventDefault();
+        seleccionarElementoDesdePanel(encodeURIComponent(nombre)); // Asume V1
+      };
+    })(el.nombre);
+    lista.appendChild(div);
+  }
+  if (!hay) {
+    var vacio = document.createElement('div');
+    vacio.style.color = "#aaa";
+    vacio.style.padding = "16px 8px";
+    vacio.innerHTML = "No hay elementos que coincidan";
+    lista.appendChild(vacio);
+  }
+}
+ // Fuerza layout correcto en IE/HTA (por si acaso)
+  setTimeout(function(){
+    var tarjetas = document.getElementsByClassName('tarjeta-panel-selector');
+    for(var i=0;i<tarjetas.length;i++){
+      tarjetas[i].style.width = "100%";
+      tarjetas[i].style.display = "block";
+      tarjetas[i].style.boxSizing = "border-box";
+    }
+  }, 50);
+
+function seleccionarElementoDesdePanel(nombre) { // Para V1
+  var nombreDec = decodeURIComponent(nombre);
+  mostrarPanelLateralSelector(false); // Asume V1
+  var divSeleccion = document.getElementById('subcaso-oficio-seleccionado'); // Asume V1
+  if (divSeleccion) {
+    divSeleccion.innerText = nombreDec;
+  }
+  if (_callbackSeleccionUniversal) _callbackSeleccionUniversal(nombreDec);
+}
+var subcasoOficioSeleccionado = "";
+
+// --- FUNCIONES PARA PANEL LATERAL V2 ---
+var _callbackSeleccionUniversalV2 = null;
+var _elementosPanelActualesV2 = [];
+
+function abrirPanelSelectorV2(elementos, titulo, callback) {
+  subcasosPanelListaCompletaV2 = elementos.slice(); // Guardar la lista completa para filtrar y paginar
+  _callbackSeleccionUniversalV2 = callback;
+  document.getElementById('buscador-panel-selector-v2').value = '';
+  document.getElementById('panel-lateral-titulo-v2').innerText = titulo || 'Selecciona un elemento';
+  paginaActualPanelSubcasosV2 = 1; // Resetear a la primera página
+  renderizarPanelSubcasosPaginadoV2(); // Usar la nueva función de renderizado con paginación
+  mostrarPanelLateralSelectorV2(true);
+  setTimeout(function(){document.getElementById('buscador-panel-selector-v2').focus();}, 100);
+}
+
+function mostrarPanelLateralSelectorV2(abrir) {
+  var panel = document.getElementById('panel-lateral-selector-v2');
+  if (abrir) {
+    // Asegurarse que el panel V1 esté cerrado
+    mostrarPanelLateralSelector(false);
+    if (panel.className.indexOf('abierto') === -1) {
+      panel.className += (panel.className ? ' ' : '') + 'abierto';
+    }
+    panel.style.right = "0";
+  } else {
+    panel.className = panel.className.replace(/\babierto\b/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+|\s+$/g, '');
+    panel.style.right = "-410px";
+  }
+}
+
+document.getElementById('cerrar-panel-selector-btn-v2').onclick = function(){
+  mostrarPanelLateralSelectorV2(false);
+  _callbackSeleccionUniversalV2 = null;
+};
+// El event listener de Escape ya es genérico y cierra ambos paneles.
+
+document.getElementById('buscador-panel-selector-v2').oninput = function() {
+  paginaActualPanelSubcasosV2 = 1; // Resetear a la primera página al filtrar
+  renderizarPanelSubcasosPaginadoV2();
+};
+
+function renderizarPanelSubcasosPaginadoV2() {
+  var filtro = document.getElementById('buscador-panel-selector-v2').value.toLowerCase();
+  var elementosFiltrados = subcasosPanelListaCompletaV2.filter(function(item) {
+    return item.nombre.toLowerCase().indexOf(filtro) !== -1;
+  });
+
+  var listaDiv = document.getElementById('lista-panel-selector-v2');
+  listaDiv.innerHTML = ''; // Limpiar lista anterior
+
+  if (elementosFiltrados.length === 0) {
+    var vacio = document.createElement('div');
+    vacio.style.color = "#aaa";
+    vacio.style.padding = "16px 8px";
+    vacio.style.textAlign = "center";
+    vacio.innerHTML = "No hay subcasos que coincidan.";
+    listaDiv.appendChild(vacio);
+    return;
+  }
+
+  var totalPaginas = Math.ceil(elementosFiltrados.length / subcasosPanelPorPaginaV2);
+  if (paginaActualPanelSubcasosV2 > totalPaginas) paginaActualPanelSubcasosV2 = totalPaginas;
+  if (paginaActualPanelSubcasosV2 < 1) paginaActualPanelSubcasosV2 = 1;
+
+  var inicio = (paginaActualPanelSubcasosV2 - 1) * subcasosPanelPorPaginaV2;
+  var fin = inicio + subcasosPanelPorPaginaV2;
+  var elementosPagina = elementosFiltrados.slice(inicio, fin);
+
+  for (var i = 0; i < elementosPagina.length; i++) {
+    var el = elementosPagina[i];
+    var div = document.createElement('div');
+    div.className = 'tarjeta-panel-selector';
+    div.innerHTML =
+      '<div style="font-weight:600;color:#17406a;margin-bottom:3px;pointer-events:none;white-space:normal;word-break:normal;overflow-wrap:break-word;line-height:1.5;max-width:99%;">' +
+        el.nombre +
+      '</div>' +
+      '<div style="font-size:.96em;color:#285080;pointer-events:none;line-height:1.5;">Words almacenados: ' + el.cantidadWords + '</div>';
+    div.onmousedown = (function(itemNombre){ // Usar itemNombre para evitar problemas de scope en el closure
+      return function(e) {
+        e.preventDefault();
+        seleccionarElementoDesdePanelV2(itemNombre); // Pasar el nombre directamente
+      };
+    })(el.nombre); // Pasar el nombre del elemento actual
+    listaDiv.appendChild(div);
+  }
+
+  // Renderizar controles de paginación
+  if (totalPaginas > 1) {
+    var paginadorHTML = '<div style="text-align:center; margin-top:10px; padding-bottom:5px;">';
+    if (paginaActualPanelSubcasosV2 > 1) {
+      paginadorHTML += '<button class="boton-pequeno" style="margin-right:5px;" onclick="cambiarPaginaPanelSubcasosV2(' + (paginaActualPanelSubcasosV2 - 1) + ')">&lt; Ant</button>';
+    }
+    paginadorHTML += '<span style="font-size:0.9em; color:#333; margin:0 5px;">Pág ' + paginaActualPanelSubcasosV2 + ' de ' + totalPaginas + '</span>';
+    if (paginaActualPanelSubcasosV2 < totalPaginas) {
+      paginadorHTML += '<button class="boton-pequeno" style="margin-left:5px;" onclick="cambiarPaginaPanelSubcasosV2(' + (paginaActualPanelSubcasosV2 + 1) + ')">Sig &gt;</button>';
+    }
+    paginadorHTML += '</div>';
+    listaDiv.innerHTML += paginadorHTML;
+  }
+}
+
+function cambiarPaginaPanelSubcasosV2(nuevaPagina) {
+  paginaActualPanelSubcasosV2 = nuevaPagina;
+  renderizarPanelSubcasosPaginadoV2();
+}
+
+
+function seleccionarElementoDesdePanelV2(nombre) {
+  var nombreDec = decodeURIComponent(nombre);
+  mostrarPanelLateralSelectorV2(false);
+  // No actualiza directamente el div 'subcaso-oficio-seleccionado-v2' aquí,
+  // eso lo hará la función de callback que se pasa a abrirPanelSelectorV2
+  if (_callbackSeleccionUniversalV2) _callbackSeleccionUniversalV2(nombreDec);
+}
+// --- FIN FUNCIONES PANEL LATERAL V2 ---
+
+
+function abrirSelectorSubcasoOficio() {
+  var anio = document.getElementById('select-anio-oficio').value;
+  var caso = document.getElementById('select-caso-oficio').value;
+  if (!anio || !caso) {
+    alert("Primero seleccione año y caso.");
+    return;
+  }
+  var ruta = desktop + "\\Año " + anio + "\\" + caso;
+  var subcasos = [];
+  if (fso.FolderExists(ruta)) {
+    var subEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+    for (; !subEnum.atEnd(); subEnum.moveNext()) {
+      var nombre = subEnum.item().Name;
+      var cantWords = 0;
+      try {
+        var carpeta = fso.GetFolder(ruta + "\\" + nombre);
+        var files = new Enumerator(carpeta.Files);
+        for (; !files.atEnd(); files.moveNext()) {
+          var n = files.item().Name.toLowerCase();
+          if (n.indexOf('.doc') > 0 || n.indexOf('.docx') > 0) cantWords++;
+        }
+      } catch(e){}
+      subcasos.push({nombre: nombre, cantidadWords: cantWords});
+    }
+  }
+  if (subcasos.length == 0) subcasos.push({nombre: "(Sin subcaso)", cantidadWords: 0});
+  abrirPanelSelector(subcasos, "Selecciona un subcaso", function(nombre){
+    if (nombre == "(Sin subcaso)") {
+      subcasoOficioSeleccionado = "";
+    } else {
+      subcasoOficioSeleccionado = nombre;
+    }
+    mostrarSubcasoSeleccionado(subcasoOficioSeleccionado);
+  });
+}
+
+function mostrarSubcasoSeleccionado(nombre) {
+  var contenedor = document.getElementById('subcaso-oficio-seleccionado');
+  var botonSeleccionar = document.getElementById('boton-subcaso-oficio');
+  if (!nombre) {
+    // Muestra el botón "Seleccionar" y limpia el contenedor
+    botonSeleccionar.style.display = "";
+    contenedor.innerHTML = "";
+    // Limpia la variable global si la usas
+    if (typeof subcasoOficioSeleccionado !== "undefined") {
+      subcasoOficioSeleccionado = "";
+    }
+  } else {
+    // Oculta el botón "Seleccionar" y muestra el nombre + botón Cambiar
+    botonSeleccionar.style.display = "none";
+    contenedor.innerHTML =
+      '<span style="font-size:1.08em;color:#17406a;font-weight:600;vertical-align:middle;">' + nombre + '</span>' +
+      '<button type="button" class="boton boton-naranja boton-pequeno" style="margin-left:18px;" onclick="cambiarSubcasoOficio()">Cambiar</button>';
+    // Asigna la variable global si la usas
+    if (typeof subcasoOficioSeleccionado !== "undefined") {
+      subcasoOficioSeleccionado = nombre;
+    }
+  }
+}
+
+function cambiarSubcasoOficio() {
+  mostrarSubcasoSeleccionado("");
+}
+
+function quitarSeleccionSubcaso() {
+  document.getElementById('subcaso-oficio-seleccionado').innerHTML = "";
+  document.getElementById('boton-subcaso-oficio').style.display = "";
+}
+
+// PAGINACIÓN
+function llenarPanelSelectorSubcasos(listaSubcasos) {
+  // Filtrado (si hay buscador)
+  var filtro = document.getElementById('buscador-panel-selector').value.toLowerCase();
+  subcasosPanelFiltrados = listaSubcasos.filter(function(subcaso){
+    return subcaso.toLowerCase().indexOf(filtro) !== -1;
+  });
+
+  // Paginación
+  var totalPaginas = Math.ceil(subcasosPanelFiltrados.length / subcasosPanelPorPagina);
+  if (paginaActualPanelSubcasos > totalPaginas) paginaActualPanelSubcasos = 1;
+  var inicio = (paginaActualPanelSubcasos - 1) * subcasosPanelPorPagina;
+  var fin = inicio + subcasosPanelPorPagina;
+  var subcasosPagina = subcasosPanelFiltrados.slice(inicio, fin);
+
+  // Renderiza subcasos
+  var listaDiv = document.getElementById('lista-panel-selector');
+  listaDiv.innerHTML = '';
+  subcasosPagina.forEach(function(subcaso) {
+    var div = document.createElement('div');
+    div.className = 'tarjeta-panel-selector';
+    div.textContent = subcaso;
+    div.onclick = function() { seleccionarSubcasoDesdePanel(subcaso); };
+    listaDiv.appendChild(div);
+  });
+
+  // Renderiza paginación
+  var paginacionHTML = '';
+  if (totalPaginas > 1) {
+    paginacionHTML += '<div style="text-align:center;margin-top:8px;">';
+    for (var i = 1; i <= totalPaginas; i++) {
+      paginacionHTML += '<button onclick="cambiarPaginaPanelSubcasos(' + i + ')" ' +
+        (i === paginaActualPanelSubcasos ? 'class="active"' : '') + '>' + i + '</button> ';
+    }
+    paginacionHTML += '</div>';
+  }
+  listaDiv.innerHTML += paginacionHTML;
+}
+function cambiarPaginaPanelSubcasos(pagina) {
+  paginaActualPanelSubcasos = pagina;
+  // Vuelve a cargar la lista con la página seleccionada
+  // Debes pasar el array original de subcasos, ajústalo según tu lógica
+  llenarPanelSelectorSubcasos(subcasosPanelFiltrados.length ? subcasosPanelFiltrados : []);
+}
+function abrirPanelSelectorPaginado(listaSubcasos, titulo, callbackSeleccion) {
+  // Guarda el callback si lo necesitas usar en otro lado
+  window.__callbackSeleccionSubcasoPanel = callbackSeleccion;
+
+  // Renderiza la lista actual (primera página)
+  renderPanelSubcasosPaginado();
+
+  // Muestra el panel
+  document.getElementById('panel-lateral-selector').style.right = "0";
+  document.getElementById('panel-lateral-titulo').innerText = titulo;
+
+  // Vincula buscador si existe
+  var buscador = document.getElementById('buscador-panel-selector');
+  if (buscador) {
+    buscador.onkeyup = function() {
+      paginaActualPanelSubcasos = 1;
+      renderPanelSubcasosPaginado();
+    }
+  }
+
+  // Vincula cerrar
+  document.getElementById('cerrar-panel-selector-btn').onclick = function() {
+    document.getElementById('panel-lateral-selector').style.right = "-410px";
+  }
+}
+
+// Renderiza lista y paginación
+function renderPanelSubcasosPaginado() {
+  var buscador = document.getElementById('buscador-panel-selector');
+  var filtro = buscador ? buscador.value.toLowerCase() : "";
+  var filtrados = subcasosPanelListaCompleta.filter(function(subc){
+    return subc.nombre.toLowerCase().indexOf(filtro) !== -1;
+  });
+
+  var totalPaginas = Math.ceil(filtrados.length / subcasosPanelPorPagina) || 1;
+  if (paginaActualPanelSubcasos > totalPaginas) paginaActualPanelSubcasos = 1;
+  var inicio = (paginaActualPanelSubcasos - 1) * subcasosPanelPorPagina;
+  var fin = inicio + subcasosPanelPorPagina;
+  var pagina = filtrados.slice(inicio, fin);
+
+  var listaDiv = document.getElementById('lista-panel-selector');
+  listaDiv.innerHTML = '';
+
+  if (filtrados.length === 0) {
+    // Aquí se muestra el mensaje cuando no hay resultados
+    var msg = document.createElement('div');
+    msg.style = "color:#b00020;font-weight:bold;padding:18px 0;text-align:center;";
+    msg.innerText = 'No hay elementos que coincidan';
+    listaDiv.appendChild(msg);
+    return; // No renderiza paginación ni nada más
+  }
+
+  pagina.forEach(function(subcaso){
+    var div = document.createElement('div');
+    div.className = 'tarjeta-panel-selector';
+    div.innerHTML = '<span class="nombre-caso-card">' + subcaso.nombre + '</span>'
+                  + '<span class="words-caso-card">Archivos Word: ' + subcaso.cantidadWords + '</span>';
+    div.onclick = function() {
+      if(window.__callbackSeleccionSubcasoPanel) window.__callbackSeleccionSubcasoPanel(subcaso.nombre);
+      document.getElementById('panel-lateral-selector').style.right = "-410px";
+    };
+    listaDiv.appendChild(div);
+  });
+
+  // Paginación
+  if (totalPaginas > 1) {
+    var paginacion = document.createElement('div');
+    paginacion.style = "text-align:center;margin-top:8px;";
+    for (var i = 1; i <= totalPaginas; i++) {
+      var btn = document.createElement('button');
+      btn.textContent = i;
+      if (i === paginaActualPanelSubcasos) btn.className = "active";
+      btn.onclick = (function(p){
+        return function(){
+          paginaActualPanelSubcasos = p;
+          renderPanelSubcasosPaginado();
+        }
+      })(i);
+      paginacion.appendChild(btn);
+    }
+    listaDiv.appendChild(paginacion);
+  }
+}
+
+//Estadística.
+// Inicializa dashboard al cargar
+function inicializarDashboard() {
+  cargarAniosDisponibles();
+  actualizarTarjetasEstadisticas();
+  inicializarCalendario();
+}
+
+// Cargar años disponibles analizando carpetas del escritorio
+function cargarAniosDisponibles() {
+  var fso = new ActiveXObject("Scripting.FileSystemObject");
+  var folder = fso.GetFolder(desktop);
+  var selector = document.getElementById("selector-anio");
+  selector.innerHTML = "";
+  var aniosSet = {};
+
+  var carpetas = new Enumerator(folder.SubFolders);
+  for (; !carpetas.atEnd(); carpetas.moveNext()) {
+    var nombre = carpetas.item().Name;
+    var match = nombre.match(/^Año (\d{4})/i);
+    if (match) {
+      aniosSet[match[1]] = true;
+    }
+  }
+  var anios = Object.keys(aniosSet).sort().reverse();
+  if(anios.length === 0) {
+    var opt = document.createElement("option");
+    opt.value = "";
+    opt.innerText = "Sin años";
+    selector.appendChild(opt);
+  } else {
+    anios.forEach(function(anio) {
+      var opt = document.createElement("option");
+      opt.value = anio;
+      opt.innerText = anio;
+      selector.appendChild(opt);
+    });
+  }
+}
+
+
+// Obtiene estadísticas por año, revisando carpetas con estructura flexible
+function obtenerEstadisticasPorAnio(anio) {
+  var shell = new ActiveXObject("WScript.Shell");
+  var escritorio = shell.SpecialFolders("Desktop") + "\\";
+  var fso = new ActiveXObject("Scripting.FileSystemObject");
+  var folder = fso.GetFolder(escritorio);
+
+  var tiposVariantes = [
+    { tipo: "Oficio", regex: /Oficio(?:s)?/i },
+    { tipo: "Concepto", regex: /Concepto(?:s)?/i },
+    { tipo: "Acta", regex: /Acta(?:s)?/i },
+    { tipo: "Constancia", regex: /Constancia(?:s)?/i },
+    { tipo: "Circular", regex: /Circular(?:es)?/i }
+  ];
+  var extensionesWord = /\.(docx?|pdf)$/i;
+
+  var stats = {};
+  tiposVariantes.forEach(function(el) {
+    stats[el.tipo] = {
+      cantidad: 0,
+      ultima: "-",
+      carpeta: "-"
+    };
+  });
+  var ultimas = {};
+
+  var carpetas = new Enumerator(folder.SubFolders);
+  for (; !carpetas.atEnd(); carpetas.moveNext()) {
+    var nombreCarpeta = carpetas.item().Name;
+    var reAnio = new RegExp("^Año " + anio, "i");
+    if (reAnio.test(nombreCarpeta)) {
+      buscarArchivosEnCarpeta(carpetas.item());
+    }
+  }
+
+
+function buscarArchivosEnCarpeta(folderObj) {
+    var archivos = new Enumerator(folderObj.Files);
+    for (; !archivos.atEnd(); archivos.moveNext()) {
+      var nombre = archivos.item().Name;
+      if (extensionesWord.test(nombre)) {
+        for (var i = 0; i < tiposVariantes.length; i++) {
+          if (tiposVariantes[i].regex.test(nombre)) {
+            var tipo = tiposVariantes[i].tipo;
+            stats[tipo].cantidad++;
+            var fecha = archivos.item().DateLastModified;
+            var fechaJS = new Date(fecha);
+            var fechaFormateada = pad2(fechaJS.getDate()) + '/' +
+                                  pad2(fechaJS.getMonth() + 1) + '/' +
+                                  fechaJS.getFullYear();
+
+            // Seleccionar por número de documento, separado por tipo
+            var numDoc = extraerNumeroDocumento(nombre, tipo);
+            var numActual = (ultimas[tipo] && typeof ultimas[tipo].numDoc !== "undefined") ? ultimas[tipo].numDoc : -1;
+
+            if (!ultimas[tipo] || numDoc > numActual) {
+              ultimas[tipo] = {
+                nombre: nombre,
+                numDoc: numDoc,
+                fecha: fecha,
+                fechaFormateada: fechaFormateada,
+                ruta: archivos.item().Path
+              };
+            }
+            break;
+          }
+        }
+      }
+    }
+    var subcarpetas = new Enumerator(folderObj.SubFolders);
+    for (; !subcarpetas.atEnd(); subcarpetas.moveNext()) {
+      buscarArchivosEnCarpeta(subcarpetas.item());
+    }
+  }
+
+  tiposVariantes.forEach(function(el) {
+    var tipo = el.tipo;
+    if (ultimas[tipo]) {
+      stats[tipo].ultima = ultimas[tipo].fechaFormateada;
+      stats[tipo].carpeta = obtenerRutaCarpetaSubcarpeta(ultimas[tipo].ruta, anio);
+    }
+  });
+  return stats;
+}
+
+function extraerNumeroDocumento(nombre, tipo) {
+  // Escapa el tipo para el regex
+  var tipoReg = tipo.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+  // Busca: Tipo (opcional "s") [espacios] (opcional No. o N°) [espacios] número
+  var re = new RegExp(tipoReg + "(?:s)?\\s*(?:No\\.?|N°)?\\s*\\.?\\s*(\\d+)", "i");
+  var match = nombre.match(re);
+  if (match) return parseInt(match[1], 10);
+  return -1; // Así nunca seleccionas un archivo sin número si hay con número
+}
+
+// Actualiza las tarjetas según el año seleccionado
+function actualizarTarjetasEstadisticas() {
+  var selector = document.getElementById("selector-anio");
+  if (!selector || !selector.value) return;
+  var anio = selector.value;
+  var stats = obtenerEstadisticasPorAnio(anio);
+
+  var tiposVariantes = [
+    { tipo: "Oficio", regex: /Oficio(?:s)?/i },
+    { tipo: "Concepto", regex: /Concepto(?:s)?/i },
+    { tipo: "Acta", regex: /Acta(?:s)?/i },
+    { tipo: "Constancia", regex: /Constancia(?:s)?/i },
+    { tipo: "Circular", regex: /Circular(?:es)?/i }
+  ];
+
+  tiposVariantes.forEach(function(el) {
+    var tipo = el.tipo;
+    var clase = ".tarjeta-item-" + tipo.toLowerCase();
+    var cantidadElem = document.querySelector(clase + " .tarjeta-cantidad");
+    var datosElem = document.querySelector(clase + " .tarjeta-datos");
+    if (cantidadElem) cantidadElem.innerText = stats[tipo].cantidad;
+    if (datosElem) datosElem.innerHTML =
+      "<b>Última producción:</b> " + stats[tipo].ultima + "<br>" +
+      "<b>Lugar de almacenamiento:</b> " + stats[tipo].carpeta;
+  });
+}
+function obtenerRutaCarpetaSubcarpeta(rutaCompleta, anio) {
+  var re = new RegExp("Año " + anio + "\\\\(.+?)\\\\(.+?)\\\\[^\\\\]+$", "i");
+  var match = rutaCompleta.match(re);
+  if (match) {
+    return match[1] + "\\" + match[2];
+  } else {
+    var re2 = new RegExp("Año " + anio + "\\\\(.+?)\\\\[^\\\\]+$", "i");
+    var match2 = rutaCompleta.match(re2);
+    if (match2) return match2[1];
+    return "-";
+  }
+}
+
+
+function sincronizarTodo() {
+  // Aquí puedes agregar cualquier otra función global de refresco.
+  cargarAniosDisponibles();
+  actualizarTarjetasEstadisticas();
+  mostrarSyncStatus();
+  // Si tienes otras secciones, llama también a sus funciones de refresco aquí.
+  // Por ejemplo:
+  // refrescarBusquedaAvanzada();
+  // refrescarCasosRecientes();
+}
+
+function mostrarSyncStatus() {
+  var syncStatus = document.getElementById('sync-status');
+  syncStatus.innerHTML =
+    '<span style="display: inline-flex; align-items:center; gap:8px; color: #119c41; font-weight: 600; font-size: 1em;">' +
+      '<span class="sync-spinner" style="display:inline-block; width:18px; height:18px; border: 2.5px solid #b7e5c1; border-top:2.5px solid #119c41; border-radius:50%; animation:spinSync 1s linear infinite;"></span>' +
+      'Sincronización automática realizada con éxito' +
+    '</span>';
+  setTimeout(function() {
+    syncStatus.innerHTML = '';
+  }, 2200);
+}
+
+var style = document.createElement('style');
+style.type = 'text/css';
+style.innerHTML = '@keyframes spinSync { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }';
+document.getElementsByTagName('head')[0].appendChild(style);
+
+
+//OFICIOS de respuesta a usuarios
+function mostrarCampoRadicado() {
+  var select = document.getElementById('select-radicado-dokus');
+  var campo = document.getElementById('campo-numero-radicado');
+  campo.style.display = (select.value === 'si') ? 'block' : 'none';
+}
+function mostrarCampoCorreo() {
+  var select = document.getElementById('select-tiene-correo');
+  var campo = document.getElementById('campo-correo-electronico');
+  campo.style.display = (select.value === 'si') ? 'block' : 'none';
+}
+
+function mostrarDatosOficio(subcaso) {
+  document.getElementById('nombre-carpeta-oficio').innerText = subcaso.nombre;
+  
+  if (subcaso.correo) {
+    document.getElementById('correo-oficio').style.display = '';
+    document.getElementById('correo-valor').innerText = subcaso.correo;
+  } else {
+    document.getElementById('correo-oficio').style.display = 'none';
+  }
+
+  if (subcaso.radicado) {
+    document.getElementById('radicado-oficio').style.display = '';
+    document.getElementById('radicado-valor').innerText = subcaso.radicado;
+  } else {
+    document.getElementById('radicado-oficio').style.display = 'none';
+  }
+}
+//Actualizar subcaso
+// Función para actualizar la nota
+function actualizarNotaCasoOficio() {
+  var selectCaso = document.getElementById('select-caso-oficio');
+  var nombreCasoNota = document.getElementById('nombre-caso-nota-oficio');
+  if (selectCaso && nombreCasoNota && selectCaso.options.length > 0) {
+    var idx = selectCaso.selectedIndex >= 0 ? selectCaso.selectedIndex : 0;
+    var nombre = selectCaso.options[idx].text || selectCaso.options[idx].innerText || "";
+    nombreCasoNota.innerText = nombre;
+  }
+}
+
+// Inicializa la nota SIEMPRE que se muestre la sección de oficios
+function inicializarNotaCasoOficio() {
+  var selectCaso = document.getElementById('select-caso-oficio');
+  if (selectCaso) {
+    selectCaso.onchange = actualizarNotaCasoOficio;
+    actualizarNotaCasoOficio(); // Esto asegura que la nota sale bien al cargar
+  }
+}
+
+
+// FUNCIONES PARA CREAR OFICIOS V2
+// ================================
+
+function cargarFormatosOficiosV2() {
+  paginaFormatosV2 = 1;
+  formatoSeleccionadoV2 = null;
+  document.getElementById("filtro-formatos-v2").value = "";
+  formatosDetectadosV2 = [];
+  formatosFiltradosV2 = [];
+
+  var rutaFormatos = desktop + "\\Formatos";
+  try {
+    if (fso.FolderExists(rutaFormatos)) {
+      var formatosEnum = new Enumerator(fso.GetFolder(rutaFormatos).Files);
+      for (; !formatosEnum.atEnd(); formatosEnum.moveNext()) {
+        var archivo = formatosEnum.item();
+        var nombre = archivo.Name;
+        if (nombre.match(/\.(docx?|xlsx?|pdf|odt)$/i)) {
+          formatosDetectadosV2.push({
+            Nombre: nombre,
+            Ruta: archivo.Path
+          });
+        }
+      }
+    }
+  } catch (e) {
+    formatosDetectadosV2 = [];
+  }
+  formatosFiltradosV2 = formatosDetectadosV2.slice();
+  document.getElementById("cantidad-formatos-v2").textContent = formatosFiltradosV2.length;
+  renderizarListaFormatosV2();
+}
+
+function filtrarFormatosV2() {
+  var filtro = document.getElementById("filtro-formatos-v2").value.trim().toLowerCase();
+  formatosFiltradosV2 = formatosDetectadosV2.filter(function(f) {
+    return f.Nombre.toLowerCase().indexOf(filtro) !== -1;
+  });
+  paginaFormatosV2 = 1;
+  renderizarListaFormatosV2();
+  formatoSeleccionadoV2 = null;
+}
+
+function renderizarListaFormatosV2() {
+  var div = document.getElementById('lista-formatos-v2');
+  div.innerHTML = "";
+  if (formatosFiltradosV2.length === 0) {
+    div.innerHTML = "<span style='color:#888;'>No se encontraron formatos.</span>";
+    document.getElementById("cantidad-formatos-v2").textContent = "0";
+    return;
+  }
+  var totalPaginas = Math.ceil(formatosFiltradosV2.length / formatosPorPaginaV2);
+  if (paginaFormatosV2 < 1) paginaFormatosV2 = 1;
+  if (paginaFormatosV2 > totalPaginas) paginaFormatosV2 = totalPaginas;
+  var inicio = (paginaFormatosV2 - 1) * formatosPorPaginaV2;
+  var fin = inicio + formatosPorPaginaV2;
+  var formatosPagina = formatosFiltradosV2.slice(inicio, fin);
+
+  for (var i = 0; i < formatosPagina.length; i++) {
+    var a = document.createElement("a");
+      a.textContent = formatosPagina[i].Nombre;
+      a.href = "#"; // Importante para que sea clickeable y tome estilos de link
+      a.style.display = "block"; // Asegura que cada link ocupe su línea
+      a.style.marginBottom = "5px"; // Espacio entre links
+      a.onclick = (function(idx) {
+          return function(event) {
+              event.preventDefault(); // Previene el salto de página
+              seleccionarFormatoV2(inicio + idx);
+          };
+      })(i);
+      if (formatoSeleccionadoV2 && formatoSeleccionadoV2.Nombre === formatosPagina[i].Nombre) {
+        a.classList.add('selected'); // Asegúrate que la clase 'selected' exista en tus CSS para v2
+      }
+      div.appendChild(a);
+  }
+
+  if (totalPaginas > 1) {
+    var paginador = "<div class='pagina' style='margin-top:12px;text-align:center;'>";
+    for (var p = 1; p <= totalPaginas; p++) {
+      paginador += "<button"
+        + (p == paginaFormatosV2 ? " class='active'" : "")
+        + " onclick='paginaFormatosV2=" + p + ";renderizarListaFormatosV2();' style='margin:0 2px;padding:2px 8px;border-radius:5px;border:1px solid #bccce7;'>" + p + "</button>";
+    }
+    paginador += "</div>";
+    div.innerHTML += paginador;
+  }
+  document.getElementById("cantidad-formatos-v2").textContent = formatosFiltradosV2.length;
+}
+
+function seleccionarFormatoV2(idx) {
+  // --- DEBUG ---
+  // alert("seleccionarFormatoV2 llamado con idx: " + idx + "\nformatosFiltradosV2.length: " + (formatosFiltradosV2 ? formatosFiltradosV2.length : "N/A"));
+  // --- FIN DEBUG ---
+
+  if (formatosFiltradosV2 && idx >= 0 && idx < formatosFiltradosV2.length && formatosFiltradosV2[idx] && typeof formatosFiltradosV2[idx].Nombre !== 'undefined') {
+    formatoSeleccionadoV2 = formatosFiltradosV2[idx];
+    // --- DEBUG ---
+    // alert("Formato seleccionado en seleccionarFormatoV2: " + formatoSeleccionadoV2.Nombre + "\nRuta: " + formatoSeleccionadoV2.Ruta);
+    // --- FIN DEBUG ---
+  } else {
+    // --- DEBUG ---
+    // alert("Error en seleccionarFormatoV2: idx inválido o formato sin nombre.\nidx: " + idx +
+    //       "\nformatosFiltradosV2[idx]: " + (formatosFiltradosV2 && formatosFiltradosV2[idx] ? JSON.stringify(formatosFiltradosV2[idx]) : "N/A"));
+    // --- FIN DEBUG ---
+    formatoSeleccionadoV2 = null; // Asegurar que quede nulo si hay error
+  }
+  renderizarListaFormatosV2();
+}
+
+function volverPaso1V2() { // Esta función ya no es necesaria en el flujo del wizard, se usa wizardV2IrAPaso()
+  wizardV2IrAPaso(1);
+}
+
+// Nueva función para controlar la navegación del Wizard V2
+var pasoActualWizardV2 = 1;
+
+function wizardV2IrAPaso(numeroPaso) {
+  // --- DEBUG ---
+  // if (pasoActualWizardV2 === 1 && numeroPaso === 2) {
+  //   alert("Intentando ir al paso 2. formatoSeleccionadoV2: " + (formatoSeleccionadoV2 ? formatoSeleccionadoV2.Nombre : "null"));
+  // }
+  // --- FIN DEBUG ---
+
+  // Validaciones antes de avanzar de paso
+  if (numeroPaso > pasoActualWizardV2) { // Solo valida al avanzar
+    if (pasoActualWizardV2 === 1 && !formatoSeleccionadoV2) {
+      // alert("Validación falló: Por favor, seleccione un formato antes de continuar."); // Ya está la alerta interna
+      alert("Por favor, seleccione un formato antes de continuar.");
+      return;
+    }
+    if (pasoActualWizardV2 === 2) {
+      if (!document.getElementById("select-anio-oficio-v2").value || !document.getElementById("select-caso-oficio-v2").value) {
+        alert("Por favor, seleccione año y caso antes de continuar.");
+        return;
+      }
+    }
+    if (pasoActualWizardV2 === 3 && !document.getElementById("nuevo-nombre-oficio-v2").value.trim()) {
+      alert("Por favor, ingrese un nombre para el archivo antes de continuar.");
+      return;
+    }
+  }
+
+  // Ocultar todos los contenidos de los pasos
+  var contenidos = document.querySelectorAll("#seccion-crear-oficios-v2 .wizard-step-content");
+  for (var i = 0; i < contenidos.length; i++) {
+    contenidos[i].classList.remove("active");
+  }
+
+  // Quitar clase 'active' de todos los indicadores de paso y conectores
+  var steps = document.querySelectorAll("#seccion-crear-oficios-v2 .wizard-step");
+  var connectors = document.querySelectorAll("#seccion-crear-oficios-v2 .wizard-step-connector");
+
+  for (var i = 0; i < steps.length; i++) {
+    steps[i].classList.remove('active');
+    steps[i].classList.remove('completed');
+  }
+  for (var j = 0; j < connectors.length; j++) {
+    connectors[j].classList.remove('active');
+  }
+
+  // Mostrar el contenido del paso actual y activar el indicador y los anteriores como completados
+  document.getElementById("wizard-v2-step-" + numeroPaso).classList.add("active");
+
+  for (var k = 1; k <= steps.length; k++) {
+    var currentStepIndicator = document.querySelector("#seccion-crear-oficios-v2 .wizard-step[data-step='" + k + "']");
+    var currentConnector = document.querySelector("#seccion-crear-oficios-v2 .wizard-step-connector[data-step-connect='" + (k - 1) + "']");
+
+    if (k < numeroPaso) { // Pasos anteriores como completados
+      if (currentStepIndicator) currentStepIndicator.classList.add("completed");
+      if (currentConnector) currentConnector.classList.add("active"); // Conector anterior al completado también activo
+    } else if (k === numeroPaso) { // Paso actual como activo
+      if (currentStepIndicator) currentStepIndicator.classList.add("active");
+      // El conector ANTERIOR al paso activo también debe estar activo si el paso anterior se completó.
+      var prevConnector = document.querySelector("#seccion-crear-oficios-v2 .wizard-step-connector[data-step-connect='" + (k - 1) + "']");
+      if (prevConnector) prevConnector.classList.add("active");
+    }
+  }
+
+  pasoActualWizardV2 = numeroPaso;
+
+  // Si estamos en el paso 4 (resumen), actualizar el resumen
+  if (numeroPaso === 4) {
+    actualizarResumenWizardV2();
+  }
+
+  // Llenar combos si se va al paso 2 y aún no se han llenado
+  if (numeroPaso === 2) {
+    if (document.getElementById("select-anio-oficio-v2").options.length === 0) {
+        llenarAniosOficioV2();
+    }
+  }
+}
+
+function actualizarResumenWizardV2() {
+  if (!formatoSeleccionadoV2) return; // No debería llegar aquí sin formato
+
+  document.getElementById("summary-formato-v2").textContent = formatoSeleccionadoV2.Nombre;
+  document.getElementById("summary-anio-v2").textContent = document.getElementById("select-anio-oficio-v2").value || "-";
+  document.getElementById("summary-caso-v2").textContent = document.getElementById("select-caso-oficio-v2").value || "-";
+  document.getElementById("summary-subcaso-v2").textContent = subcasoOficioSeleccionadoV2 || "(Ninguno)";
+
+  var nombreNuevo = document.getElementById("nuevo-nombre-oficio-v2").value.trim();
+  var extension = formatoSeleccionadoV2.Nombre.split('.').pop();
+  document.getElementById("summary-nombre-v2").textContent = nombreNuevo || "(Sin nombre)";
+  document.getElementById("summary-extension-v2").textContent = extension || "ext";
+
+  // Lógica para la previsualización de la cabecera (si se mantiene)
+  var anio = document.getElementById("select-anio-oficio-v2").value;
+  var caso = document.getElementById("select-caso-oficio-v2").value;
+  var subcasoNombre = subcasoOficioSeleccionadoV2;
+  var datosPreview = { nombre: subcasoNombre || caso, correo: "", radicado: "" };
+
+  // Intentar cargar datos del subcaso o caso para el preview
+  var rutaDatosJson = "";
+  if (subcasoNombre) {
+    rutaDatosJson = desktop + "\\Año " + anio + "\\" + caso + "\\" + subcasoNombre + "\\.datos_subcaso.json";
+  } else {
+    rutaDatosJson = desktop + "\\Año " + anio + "\\" + caso + "\\.datos_caso.json";
+  }
+
+  if (fso.FileExists(rutaDatosJson)) {
+      try {
+          var f = fso.OpenTextFile(rutaDatosJson, 1);
+          var json = f.ReadAll();
+          f.Close();
+          var datosJson = JSON.parse(json);
+          datosPreview.correo = datosJson.correo || "";
+          datosPreview.radicado = datosJson.radicado || "";
+      } catch (e) { /* Ignorar error si el JSON no es válido */ }
+  }
+
+  var previewDiv = document.getElementById("cabecera-oficio-preview-v2");
+  if (datosPreview.correo || datosPreview.radicado) {
+      document.getElementById("nombre-carpeta-oficio-v2-preview").innerText = datosPreview.nombre;
+      var correoSpan = document.getElementById("correo-oficio-v2-preview");
+      var radicadoSpan = document.getElementById("radicado-oficio-v2-preview");
+
+      if (datosPreview.correo) {
+          document.getElementById("correo-valor-v2-preview").innerText = datosPreview.correo;
+          correoSpan.style.display = "";
+      } else {
+          correoSpan.style.display = "none";
+      }
+      if (datosPreview.radicado) {
+          document.getElementById("radicado-valor-v2-preview").innerText = datosPreview.radicado;
+          radicadoSpan.style.display = "";
+      } else {
+          radicadoSpan.style.display = "none";
+      }
+      previewDiv.style.display = "block";
+  } else {
+      previewDiv.style.display = "none";
+  }
+}
+
+
+function llenarAniosOficioV2() {
+  var select = document.getElementById("select-anio-oficio-v2");
+  if (!select) return;
+  select.innerHTML = "";
+  var anios = obtenerAniosEnEscritorio(); // Reutiliza tu función existente
+  for (var i=0; i<anios.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = anios[i];
+    opt.text = anios[i];
+    select.appendChild(opt);
+  }
+  llenarCasosOficioV2();
+}
+
+function llenarCasosOficioV2() {
+  var anio = document.getElementById("select-anio-oficio-v2").value;
+  var selectCaso = document.getElementById('select-caso-oficio-v2');
+  if (!selectCaso) return;
+  selectCaso.innerHTML = "";
+  if (!anio) return;
+  var ruta = desktop + "\\Año " + anio;
+  if (!fso.FolderExists(ruta)) return;
+  var casos = [];
+  try {
+    var casoEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+    for (; !casoEnum.atEnd(); casoEnum.moveNext()) {
+      casos.push(casoEnum.item().Name);
+    }
+  } catch(e) {}
+  casos.sort();
+  for (var i=0; i<casos.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = casos[i];
+    opt.text = casos[i];
+    selectCaso.appendChild(opt);
+  }
+  selectCaso.onchange = actualizarNotaCasoOficioV2; // Asegúrate de llamar a la versión V2
+  llenarSubcasosOficioV2(); // Esto debe ser llamado aquí
+  actualizarNotaCasoOficioV2();
+}
+
+function llenarSubcasosOficioV2() {
+    // Esta función no es estrictamente necesaria si usamos el panel selector,
+    // pero la dejamos por si se quiere un select de subcasos simple en el futuro.
+    // Por ahora, el panel selector se encarga de esto.
+    // Si decides usar un <select> para subcasos en V2, aquí iría la lógica similar a llenarSubcasosOficio()
+    // pero apuntando a los IDs de V2.
+    actualizarNotaCasoOficioV2(); // Es importante llamar esto para que la nota se actualice al cambiar caso/año
+}
+
+
+function abrirSelectorSubcasoOficioV2() {
+  var anio = document.getElementById('select-anio-oficio-v2').value;
+  var caso = document.getElementById('select-caso-oficio-v2').value;
+  if (!anio || !caso) {
+    alert("Primero seleccione año y caso.");
+    return;
+  }
+  var ruta = desktop + "\\Año " + anio + "\\" + caso;
+  var subcasos = [];
+  if (fso.FolderExists(ruta)) {
+    var subEnum = new Enumerator(fso.GetFolder(ruta).SubFolders);
+    for (; !subEnum.atEnd(); subEnum.moveNext()) {
+      var nombre = subEnum.item().Name;
+      var cantWords = 0; // Puedes adaptar esta lógica si es necesaria para V2
+      subcasos.push({nombre: nombre, cantidadWords: cantWords});
+    }
+  }
+  // Asegúrate de que el panel lateral y sus elementos internos tengan IDs únicos para V2 si es necesario.
+  // Esta implementación asume que el panel lateral es genérico y se reutiliza.
+  // Si duplicaste el panel HTML con IDs -v2, debes llamar a una versión -v2 de abrirPanelSelector.
+  // Por simplicidad, aquí asumimos que el panel es el mismo y solo cambia el callback y los datos.
+  abrirPanelSelectorV2(subcasos, "Selecciona un subcaso", function(nombreCallback){ //Llamar a la V2
+    subcasoOficioSeleccionadoV2 = (nombreCallback === "(Sin subcaso)") ? "" : nombreCallback;
+    mostrarSubcasoSeleccionadoV2(subcasoOficioSeleccionadoV2);
+  });
+}
+
+function mostrarSubcasoSeleccionadoV2(nombre) {
+  var contenedor = document.getElementById('subcaso-oficio-seleccionado-v2');
+  var botonSeleccionar = document.getElementById('boton-subcaso-oficio-v2');
+  if (!nombre) {
+    botonSeleccionar.style.display = "";
+    contenedor.innerHTML = "";
+    subcasoOficioSeleccionadoV2 = "";
+  } else {
+    botonSeleccionar.style.display = "none";
+    contenedor.innerHTML =
+      '<span style="font-size:1.08em;color:#0d2c4f;font-weight:600;vertical-align:middle;">' + nombre + '</span>' + // Estilo V2
+      '<button type="button" class="boton boton-naranja boton-pequeno" style="margin-left:18px;" onclick="cambiarSubcasoOficioV2()">Cambiar</button>';
+    subcasoOficioSeleccionadoV2 = nombre;
+  }
+  actualizarNotaCasoOficioV2();
+}
+
+function cambiarSubcasoOficioV2() {
+  mostrarSubcasoSeleccionadoV2(""); // Esto limpiará la selección y mostrará el botón "Seleccionar"
+  // Opcionalmente, podrías llamar a abrirSelectorSubcasoOficioV2() directamente si prefieres.
+}
+
+function actualizarNotaCasoOficioV2() {
+  var selectCaso = document.getElementById('select-caso-oficio-v2');
+  var nombreCasoNota = document.getElementById('nombre-caso-nota-oficio-v2');
+  var divNota = document.getElementById('nota-sin-subcaso-v2');
+
+  if (selectCaso && nombreCasoNota && divNota) {
+    if (selectCaso.options.length > 0) {
+      var idx = selectCaso.selectedIndex >= 0 ? selectCaso.selectedIndex : 0;
+      var nombre = selectCaso.options[idx].text || selectCaso.options[idx].innerText || "";
+      nombreCasoNota.innerText = nombre;
+      divNota.style.display = subcasoOficioSeleccionadoV2 ? "none" : "block"; // Muestra la nota solo si no hay subcaso
+    } else {
+      nombreCasoNota.innerText = "[Seleccione Caso]";
+      divNota.style.display = "block";
+    }
+  }
+}
+
+
+function copiarYCrearOficioV2() {
+  var anio = document.getElementById("select-anio-oficio-v2").value;
+  var caso = document.getElementById("select-caso-oficio-v2").value;
+  var subcaso = subcasoOficioSeleccionadoV2 ? subcasoOficioSeleccionadoV2.trim() : "";
+  var nombreNuevo = document.getElementById("nuevo-nombre-oficio-v2").value.trim();
+
+  if (!anio || !caso || !nombreNuevo || !formatoSeleccionadoV2) {
+    alert("Completa todos los datos para V2.");
+    return;
+  }
+  if (/[\\\/:*?"<>|]/.test(nombreNuevo)) {
+    alert("El nombre no puede tener caracteres especiales (V2).");
+    return;
+  }
+
+  var rutaDestino = desktop + "\\Año " + anio + "\\" + caso;
+  if (subcaso) rutaDestino += "\\" + subcaso;
+
+  if (!fso.FolderExists(rutaDestino)) {
+    crearRutaCompleta(rutaDestino); // Reutiliza tu función existente
+  }
+
+  if (!formatoSeleccionadoV2.Ruta || !formatoSeleccionadoV2.Nombre) {
+    alert("Debe seleccionar un formato válido (V2).");
+    return;
+  }
+
+  var ext = formatoSeleccionadoV2.Nombre.split('.').pop();
+  var rutaFinal = rutaDestino + "\\" + nombreNuevo + "." + ext;
+
+  var datosSubcaso = { nombre: subcaso, correo: "", radicado: "" };
+  var rutaDatos = desktop + "\\Año " + anio + "\\" + caso + "\\" + (subcaso || "") + "\\.datos_subcaso.json";
+  if (subcaso && fso.FileExists(rutaDatos)) { // Solo busca datos si hay subcaso
+    try {
+      var f = fso.OpenTextFile(rutaDatos, 1);
+      var json = f.ReadAll();
+      f.Close();
+      datosSubcaso = JSON.parse(json);
+      datosSubcaso.nombre = subcaso; // Asegura que el nombre del subcaso es el correcto
+    } catch (e) {
+      datosSubcaso.nombre = subcaso; // Si falla, al menos tenemos el nombre
+    }
+  } else if (!subcaso) { // Si no hay subcaso, intentamos leer del caso principal
+      rutaDatos = desktop + "\\Año " + anio + "\\" + caso + "\\.datos_caso.json"; // Asumiendo que guardas datos del caso aquí
+      if (fso.FileExists(rutaDatos)){
+          try {
+            var f = fso.OpenTextFile(rutaDatos, 1);
+            var json = f.ReadAll();
+            f.Close();
+            var datosCasoPrincipal = JSON.parse(json);
+            // Usamos datos del caso principal si no hay subcaso. Ajusta según necesidad.
+            datosSubcaso.correo = datosCasoPrincipal.correo || "";
+            datosSubcaso.radicado = datosCasoPrincipal.radicado || "";
+            datosSubcaso.nombre = caso; // El "nombre de carpeta" sería el del caso.
+          } catch (e) {
+            datosSubcaso.nombre = caso; // Fallback
+          }
+      } else {
+          datosSubcaso.nombre = caso; // Si no hay datos ni en subcaso ni en caso.
+      }
+  }
+
+
+  if (ext === "docx" || ext === "doc") {
+    try {
+      var word = new ActiveXObject("Word.Application");
+      word.Visible = false;
+      var doc = word.Documents.Add(formatoSeleccionadoV2.Ruta);
+
+      function reemplazarTexto(buscar, reemplazo, opciones) {
+        var range = doc.Content;
+        range.Find.ClearFormatting();
+        range.Find.Text = buscar;
+        range.Find.Replacement.ClearFormatting();
+        if (opciones && opciones.bold) range.Find.Replacement.Font.Bold = true;
+        else range.Find.Replacement.Font.Bold = false;
+        range.Find.Replacement.Font.AllCaps = (opciones && opciones.uppercase) ? true : false;
+        range.Find.Replacement.Text = reemplazo || "";
+        range.Find.Execute(buscar, false, false, false, false, false, true, 1, false, reemplazo || "", 2);
+      }
+
+      reemplazarTexto("NOMBRE DE CARPETA", datosSubcaso.nombre, { bold: true, uppercase: true });
+      reemplazarTexto("nombre de carpeta", toSentenceCase(datosSubcaso.nombre), { bold: false, uppercase: false });
+      reemplazarTexto("NUMERO DE RADICADO", datosSubcaso.radicado, { bold: false, uppercase: false });
+      reemplazarTexto("CORREO", datosSubcaso.correo, { bold: false, uppercase: false });
+
+      doc.SaveAs(rutaFinal);
+      doc.Close(false);
+      word.Quit();
+
+      shell.Run('"' + rutaFinal + '"');
+      alert("Archivo V2 creado correctamente.");
+      volverPaso1V2();
+      limpiarCamposCrearOficioV2();
+      sincronizarTodo(); // Asumo que esta función actualiza todo
+      return;
+    } catch(e) {
+      alert("Error al crear el Word (V2): " + e.message);
+      return;
+    }
+  }
+
+  try {
+    fso.CopyFile(formatoSeleccionadoV2.Ruta, rutaFinal, false);
+    shell.Run('"' + rutaFinal + '"');
+    alert("Archivo V2 creado correctamente.");
+    volverPaso1V2();
+    limpiarCamposCrearOficioV2();
+    sincronizarTodo();
+  } catch(e) {
+    alert("Error al copiar el archivo (V2): " + e.message);
+  }
+}
+
+function limpiarCamposCrearOficioV2(recargarFormatos) {
+  var selectAnio = document.getElementById('select-anio-oficio-v2');
+  var selectCaso = document.getElementById('select-caso-oficio-v2');
+  var nuevoNombre = document.getElementById('nuevo-nombre-oficio-v2');
+
+  if (selectAnio) selectAnio.selectedIndex = 0;
+  if (selectCaso) selectCaso.innerHTML = "";
+  if (nuevoNombre) nuevoNombre.value = "";
+
+  mostrarSubcasoSeleccionadoV2("");
+  formatoSeleccionadoV2 = null;
+
+  // No se cambian los display de los pasos aquí, eso lo maneja wizardV2IrAPaso()
+  // document.getElementById("paso1-elegir-formato-v2").style.display = "block"; // Incorrecto para wizard
+  // document.getElementById("paso2-elegir-destino-v2").style.display = "none"; // Incorrecto para wizard
+
+  if (recargarFormatos !== false) { // Permite no recargar formatos si se llama desde la inicialización de la sección
+    // La llamada a cargarFormatosOficiosV2() ya está en la inicialización de la sección (mostrarSeccion)
+    // y al volver al paso 1 del wizard si es necesario.
+    // No es necesario llamarla aquí explícitamente otra vez si recargarFormatos es true,
+    // ya que limpiarCamposCrearOficioV2 se llama con false desde mostrarSeccion.
+  }
+  renderizarListaFormatosV2(); // Para quitar la selección visual del formato
+  actualizarNotaCasoOficioV2();
+  // Asegurarse que el wizard esté en el paso 1 visualmente si se llama desde fuera del flujo normal del wizard
+  // wizardV2IrAPaso(1); // Comentado porque limpiarCampos se usa también al finalizar con éxito.
+}
+
+
+//Buscar casos
+var resultadosBusqueda = [];
+var paginaActual = 1;
+var porPagina = 10;
+
+// Variables para paginación de archivos en panel lateral
+var archivosPaginaActual = 1;
+var archivosPorPagina = 5;
+var archivosMostrados = [];
+var rutaArchivosMostrados = [];
+
+function buscarCasoUI() {
+  paginaActual = 1;
+  var anio = document.getElementById('input-buscar-anio').value.trim().toLowerCase();
+  var nombre = document.getElementById('input-buscar-nombre').value.trim().toLowerCase();
+  var shell = new ActiveXObject('WScript.Shell');
+  var fso = new ActiveXObject('Scripting.FileSystemObject');
+  var escritorio = shell.SpecialFolders('Desktop');
+
+  resultadosBusqueda = [];
+
+  var carpetasEscritorio = fso.GetFolder(escritorio).SubFolders;
+  for (var e = new Enumerator(carpetasEscritorio); !e.atEnd(); e.moveNext()) {
+    var carpetaAnio = e.item();
+    if (anio && carpetaAnio.Name.toLowerCase().indexOf(anio) === -1) continue;
+
+    var carpetasCasos = carpetaAnio.SubFolders;
+    for (var c = new Enumerator(carpetasCasos); !c.atEnd(); c.moveNext()) {
+      var carpetaCaso = c.item();
+      var casoNombre = carpetaCaso.Name;
+
+      var carpetasSubcasos = carpetaCaso.SubFolders;
+      var tieneSubcasos = false;
+
+      for (var s = new Enumerator(carpetasSubcasos); !s.atEnd(); s.moveNext()) {
+        var carpetaSubcaso = s.item();
+        var subcasoNombre = carpetaSubcaso.Name;
+        // Archivos Word en subcaso
+        var archivosArr = [];
+        var rutasArr = [];
+        var ultimoWord = null;
+        var archivosSub = carpetaSubcaso.Files;
+        for (var a = new Enumerator(archivosSub); !a.atEnd(); a.moveNext()) {
+          var archivo = a.item();
+          if (archivo.Name.match(/\.docx?$/i)) {
+            archivosArr.push(archivo.Name);
+            rutasArr.push(archivo.Path);
+            if (!ultimoWord || archivo.DateLastModified > ultimoWord.fecha) {
+              ultimoWord = { nombre: archivo.Name, fecha: archivo.DateLastModified, ruta: archivo.Path };
+            }
+          }
+        }
+        // Filtro: por nombre de caso, subcaso o archivo Word
+        var coincide = false;
+        if (!nombre) {
+          coincide = true;
+        } else {
+          if (casoNombre.toLowerCase().indexOf(nombre) !== -1) coincide = true;
+          if (subcasoNombre.toLowerCase().indexOf(nombre) !== -1) coincide = true;
+          for (var aa = 0; aa < archivosArr.length; aa++) {
+            if (archivosArr[aa].toLowerCase().indexOf(nombre) !== -1) coincide = true;
+          }
+        }
+        if (coincide) {
+          tieneSubcasos = true;
+          resultadosBusqueda.push({
+            anio: carpetaAnio.Name,
+            caso: casoNombre,
+            subcaso: subcasoNombre,
+            archivos: archivosArr,
+            archivosRutas: rutasArr,
+            ultimoWord: ultimoWord && ultimoWord.nombre ? ultimoWord.nombre : '-',
+            ruta: carpetaSubcaso.Path,
+            rutaUltimoWord: ultimoWord && ultimoWord.ruta ? ultimoWord.ruta : ''
+          });
+        }
+      }
+
+      // Si no tiene subcasos, mostrar el caso solo
+      if (!tieneSubcasos) {
+        var archivosArr = [];
+        var rutasArr = [];
+        var ultimoWord = null;
+        var archivosCaso = carpetaCaso.Files;
+        for (var a = new Enumerator(archivosCaso); !a.atEnd(); a.moveNext()) {
+          var archivo = a.item();
+          if (archivo.Name.match(/\.docx?$/i)) {
+            archivosArr.push(archivo.Name);
+            rutasArr.push(archivo.Path);
+            if (!ultimoWord || archivo.DateLastModified > ultimoWord.fecha) {
+              ultimoWord = { nombre: archivo.Name, fecha: archivo.DateLastModified, ruta: archivo.Path };
+            }
+          }
+        }
+        // Filtro: por nombre de caso o archivo Word
+        var coincide = false;
+        if (!nombre) {
+          coincide = true;
+        } else {
+          if (casoNombre.toLowerCase().indexOf(nombre) !== -1) coincide = true;
+          for (var aa = 0; aa < archivosArr.length; aa++) {
+            if (archivosArr[aa].toLowerCase().indexOf(nombre) !== -1) coincide = true;
+          }
+        }
+        if (coincide) {
+          resultadosBusqueda.push({
+            anio: carpetaAnio.Name,
+            caso: casoNombre,
+            subcaso: '-',
+            archivos: archivosArr,
+            archivosRutas: rutasArr,
+            ultimoWord: ultimoWord && ultimoWord.nombre ? ultimoWord.nombre : '-',
+            ruta: carpetaCaso.Path,
+            rutaUltimoWord: ultimoWord && ultimoWord.ruta ? ultimoWord.ruta : ''
+          });
+        }
+      }
+    }
+  }
+  renderTablaCasos();
+  document.getElementById('panel-detalles-caso').style.display = 'none';
+}
+
+function filtrarCasosUI() {
+  paginaActual = 1;
+  var nombre = document.getElementById('input-buscar-nombre').value.trim().toLowerCase();
+  if (!nombre) {
+    renderTablaCasos();
+    return;
+  }
+  var filtrados = [];
+  for (var i = 0; i < resultadosBusqueda.length; i++) {
+    var caso = resultadosBusqueda[i];
+    var enCaso = caso.caso.toLowerCase().indexOf(nombre) !== -1;
+    var enSubcaso = caso.subcaso && caso.subcaso.toLowerCase().indexOf(nombre) !== -1;
+    var enWord = false;
+    for (var j = 0; j < caso.archivos.length; j++) {
+      if (caso.archivos[j].toLowerCase().indexOf(nombre) !== -1) {
+        enWord = true; break;
+      }
+    }
+    if (enCaso || enSubcaso || enWord) filtrados.push(caso);
+  }
+  renderTablaCasos(filtrados);
+  document.getElementById('panel-detalles-caso').style.display = 'none';
+}
+
+function renderTablaCasos(arr) {
+  if (!arr) arr = resultadosBusqueda;
+  var tbody = document.getElementById('tbody-casos');
+  tbody.innerHTML = '';
+
+  // Paginación
+  var totalRegistros = arr.length;
+  var totalPaginas = Math.ceil(totalRegistros / porPagina);
+  if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+  if (paginaActual < 1) paginaActual = 1;
+  var inicio = (paginaActual - 1) * porPagina;
+  var fin = inicio + porPagina;
+  var dataPagina = arr.slice(inicio, fin);
+
+  for (var i = 0; i < dataPagina.length; i++) {
+    var caso = dataPagina[i];
+    var fila = document.createElement('tr');
+    fila.style.cursor = 'pointer';
+    fila.onclick = (function(c) {
+      return function() { mostrarDetallesCaso(c); };
+    })(caso);
+
+    var tdAnio = document.createElement('td'); tdAnio.innerText = caso.anio;
+    var tdNombre = document.createElement('td'); tdNombre.innerText = caso.caso;
+    var tdSubcaso = document.createElement('td'); tdSubcaso.innerText = caso.subcaso || '-';
+    var tdArchivos = document.createElement('td'); tdArchivos.innerText = caso.archivos.length ? caso.archivos.length : '-';
+    var tdUltimo = document.createElement('td'); tdUltimo.innerText = caso.ultimoWord;
+    var tdAccion = document.createElement('td');
+    tdAccion.innerHTML = '<button class="boton boton-pequeno" title="Ver detalles" onclick="event.stopPropagation();mostrarDetallesCasoDirecto(' + (inicio + i) + ');">🔎</button>';
+    fila.appendChild(tdAnio);
+    fila.appendChild(tdNombre);
+    fila.appendChild(tdSubcaso);
+    fila.appendChild(tdArchivos);
+    fila.appendChild(tdUltimo);
+    fila.appendChild(tdAccion);
+    tbody.appendChild(fila);
+  }
+
+  // Paginador
+  var paginador = document.getElementById('paginador-casos');
+  if (!paginador) {
+    paginador = document.createElement('div');
+    paginador.id = 'paginador-casos';
+    paginador.style = 'margin:12px 0 0 0; text-align:center;';
+    tbody.parentNode.parentNode.appendChild(paginador);
+  }
+  if (totalPaginas > 1) {
+    var html = '';
+    if (paginaActual > 1) {
+      html += '<button onclick="cambiarPaginaCasos(' + (paginaActual - 1) + ')" class="boton boton-pequeno" style="margin-right:6px;">&lt; Anterior</button>';
+    }
+    html += ' Página ' + paginaActual + ' de ' + totalPaginas + ' ';
+    if (paginaActual < totalPaginas) {
+      html += '<button onclick="cambiarPaginaCasos(' + (paginaActual + 1) + ')" class="boton boton-pequeno" style="margin-left:6px;">Siguiente &gt;</button>';
+    }
+    paginador.innerHTML = html;
+    paginador.style.display = 'block';
+  } else {
+    paginador.innerHTML = '';
+    paginador.style.display = 'none';
+  }
+}
+
+function cambiarPaginaCasos(nueva) {
+  paginaActual = nueva;
+  renderTablaCasos();
+  document.getElementById('panel-detalles-caso').style.display = 'none';
+}
+
+function mostrarDetallesCasoDirecto(indice) {
+  mostrarDetallesCaso(resultadosBusqueda[indice]);
+}
+
+function mostrarDetallesCaso(caso) {
+  archivosPaginaActual = 1;
+  archivosMostrados = caso.archivos;
+  rutaArchivosMostrados = caso.archivosRutas;
+
+  document.getElementById('detalle-titulo').innerText = 'Caso: ' + caso.caso + ' (' + caso.anio + ')';
+  document.getElementById('detalle-cuerpo').innerHTML = (caso.subcaso && caso.subcaso !== '-' ? '<b>Subcaso:</b> ' + caso.subcaso + '<br>' : '')
+    + '<b>Archivos:</b> ' + (caso.archivos.length ? caso.archivos.length : '0') + '<br>'
+    + '<b>Último Word:</b> ' + (caso.ultimoWord || '-') + '<br>'
+    + '<b>Ruta:</b> ' + caso.ruta;
+
+  renderArchivosPanel();
+
+  document.getElementById('panel-detalles-caso').style.display = 'block';
+
+  document.getElementById('detalle-abrir-carpeta').onclick = function() {
+    var shell = new ActiveXObject('WScript.Shell');
+    shell.Run('explorer.exe "' + caso.ruta + '"');
+  };
+  document.getElementById('detalle-salir-caso').onclick = function() {
+    document.getElementById('panel-detalles-caso').style.display = 'none';
+  };
+}
+
+// PAGINACIÓN Y ARCHIVOS CLICABLES EN PANEL LATERAL
+function renderArchivosPanel() {
+  var total = archivosMostrados.length;
+  var totalPaginas = Math.ceil(total / archivosPorPagina);
+  if (archivosPaginaActual > totalPaginas) archivosPaginaActual = totalPaginas;
+  if (archivosPaginaActual < 1) archivosPaginaActual = 1;
+  var inicio = (archivosPaginaActual - 1) * archivosPorPagina;
+  var fin = inicio + archivosPorPagina;
+  var lista = archivosMostrados.slice(inicio, fin);
+  var rutas = rutaArchivosMostrados.slice(inicio, fin);
+
+  var htmlArchivos = '';
+  if (total) {
+    htmlArchivos += '<div style="margin-top:8px;"><b>Archivos Word encontrados:</b><ul style=\'margin-bottom:5px;\'>';
+    for (var i = 0; i < lista.length; i++) {
+      htmlArchivos += '<li><a href="#" style="text-decoration:underline;color:#205085;" onclick="abrirWordArchivo(\'' + rutas[i].replace(/\\/g, '\\\\') + '\');return false;">' + lista[i] + '</a></li>';
+    }
+    htmlArchivos += '</ul></div>';
+    if (totalPaginas > 1) {
+      htmlArchivos += '<div style="text-align:center;margin-top:7px;">';
+      if (archivosPaginaActual > 1) {
+        htmlArchivos += '<button onclick="cambiarPaginaArchivos(' + (archivosPaginaActual - 1) + ')" class="boton boton-pequeno" style="margin-right:6px;">&lt; Anterior</button>';
+      }
+      htmlArchivos += ' Página ' + archivosPaginaActual + ' de ' + totalPaginas + ' ';
+      if (archivosPaginaActual < totalPaginas) {
+        htmlArchivos += '<button onclick="cambiarPaginaArchivos(' + (archivosPaginaActual + 1) + ')" class="boton boton-pequeno" style="margin-left:6px;">Siguiente &gt;</button>';
+      }
+      htmlArchivos += '</div>';
+    }
+  } else {
+    htmlArchivos = '<div style="margin-top:8px;"><i>No hay archivos Word.</i></div>';
+  }
+  document.getElementById('detalle-archivos').innerHTML = htmlArchivos;
+}
+
+function cambiarPaginaArchivos(nueva) {
+  archivosPaginaActual = nueva;
+  renderArchivosPanel();
+}
+
+// Función global para abrir archivo Word desde el panel
+function abrirWordArchivo(ruta) {
+  try {
+    var shell = new ActiveXObject('WScript.Shell');
+    shell.Run('"' + ruta + '"');
+  } catch(e) {
+    alert('No se pudo abrir el archivo:\n' + ruta);
+  }
+}
+
+//Calendario
+// =================== FECHA LOCAL SEGURA ===================
+function getFechaLocalISO(date) {
+  var yyyy = date.getFullYear();
+  var mm = date.getMonth() + 1;
+  var dd = date.getDate();
+  if (mm < 10) mm = "0" + mm;
+  if (dd < 10) dd = "0" + dd;
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+// =================== PARSE FECHA ISO COMO LOCAL ===================
+function parseFechaISOComoLocal(fechaISO) {
+  // fechaISO = "2025-07-02"
+  var partes = fechaISO.split("-");
+  return new Date(
+    parseInt(partes[0], 10),
+    parseInt(partes[1], 10) - 1,
+    parseInt(partes[2], 10)
+  );
+}
+
+// =================== VARIABLES GLOBALES ===================
+var RUTA_EVENTOS = "eventos_calendario.json";
+var eventosCalendario = [];
+var mesVista = null;
+var anioVista = null;
+
+// =================== LECTURA Y ESCRITURA DE ARCHIVO ===================
+function leerEventosCalendario() {
+  try {
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    if (fso.FileExists(RUTA_EVENTOS)) {
+      var archivo = fso.OpenTextFile(RUTA_EVENTOS, 1, false);
+      var contenido = archivo.ReadAll();
+      archivo.Close();
+      if (contenido.trim() !== "") {
+        eventosCalendario = JSON.parse(contenido);
+      } else {
+        eventosCalendario = [];
+      }
+    } else {
+      eventosCalendario = [];
+    }
+  } catch (e) {
+    alert("Error leyendo archivo de eventos: " + e.message);
+    eventosCalendario = [];
+  }
+}
+
+function guardarEventosCalendario() {
+  try {
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var archivo = fso.OpenTextFile(RUTA_EVENTOS, 2, true);
+    archivo.Write(JSON.stringify(eventosCalendario));
+    archivo.Close();
+  } catch (e) {
+    alert("Error guardando archivo de eventos: " + e.message);
+  }
+}
+
+// =================== RECORDATORIO: Buscar eventos próximos ===================
+function mostrarRecordatoriosCalendario() {
+  var btn = document.getElementById('widget-recordatorios-btn');
+  var panel = document.getElementById('widget-recordatorios-panel');
+  var contenido = document.getElementById('widget-recordatorios-contenido');
+  var badge = document.getElementById('widget-badge');
+  if (!btn || !panel || !contenido || !badge) return;
+
+  // Lógica de recordatorios igual que antes
+  var ahora = new Date();
+  var hoyISO = getFechaLocalISO(ahora);
+  var mananaISO = getFechaLocalISO((function(d){ var f=new Date(d); f.setDate(f.getDate()+1); return f; })(ahora));
+
+  var recordatoriosHoy = [];
+  var recordatoriosManana = [];
+
+  for (var i=0; i<eventosCalendario.length; i++) {
+    var e = eventosCalendario[i];
+
+    if (!e.hora) {
+      if (e.fecha === hoyISO) recordatoriosHoy.push({evento: e, mensaje: "Sin hora"});
+      else if (e.fecha === mananaISO) recordatoriosManana.push({evento: e, mensaje: "Sin hora"});
+      continue;
+    }
+
+    var dt = eventoStringAFecha(e.fecha, e.hora);
+    if (!dt) continue;
+    var fechaEvento = getFechaLocalISO(dt);
+
+    // HOY
+    if (fechaEvento === hoyISO) {
+      var diffMin = (dt - ahora) / (1000*60);
+      if (diffMin >= 0 && diffMin <= 300)
+        recordatoriosHoy.push({evento: e, mensaje: "En " + Math.round(diffMin) + " minutos"});
+      if (diffMin < 0 && diffMin > -10)
+        recordatoriosHoy.push({evento: e, mensaje: "Ya inició hace poco"});
+    }
+    // MAÑANA
+    else if (fechaEvento === mananaISO) {
+      var hora = e.hora || "";
+      recordatoriosManana.push({evento: e, mensaje: (hora ? "A las " + hora : "Sin hora")});
+    }
+  }
+
+  // Mostrar u ocultar el widget/campana
+  var total = recordatoriosHoy.length + recordatoriosManana.length;
+  if (total > 0) {
+    btn.style.display = "";
+    badge.style.display = total > 0 ? "" : "none";
+    badge.innerText = total;
+  } else {
+    btn.style.display = "none";
+    panel.style.display = "none";
+    return;
+  }
+
+  // Prepara el contenido del panel
+  var html = "";
+  if (recordatoriosHoy.length > 0) {
+    html += "<b>¡Tienes eventos próximos hoy!</b><ul style='margin-top:7px;'>";
+    for (var k=0; k<recordatoriosHoy.length; k++) {
+      var ev = recordatoriosHoy[k].evento;
+      var fecha = ev.fecha.split('-');
+      var textoFecha = fecha[2] + " de " +
+        ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][parseInt(fecha[1],10)-1] +
+        " de " + fecha[0];
+      html += "<li style='margin-bottom:2px;'>" +
+        ev.titulo + " — <span style='color:#9a6b00;'>" +
+        textoFecha + (ev.hora ? " a las <b>" + ev.hora + "</b>" : "") +
+        "</span> <b>(" + recordatoriosHoy[k].mensaje + ")</b></li>";
+    }
+    html += "</ul>";
+  }
+  if (recordatoriosManana.length > 0) {
+    html += "<b style='display:block;margin-top:10px;'>Y también tienes eventos mañana:</b><ul style='margin-top:7px;'>";
+    for (var k=0; k<recordatoriosManana.length; k++) {
+      var ev = recordatoriosManana[k].evento;
+      var fecha = ev.fecha.split('-');
+      var textoFecha = fecha[2] + " de " +
+        ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][parseInt(fecha[1],10)-1] +
+        " de " + fecha[0];
+      html += "<li style='margin-bottom:2px;'>" +
+        ev.titulo + " — <span style='color:#9a6b00;'>" +
+        textoFecha + (ev.hora ? " a las <b>" + ev.hora + "</b>" : "") +
+        "</span> <b>(" + recordatoriosManana[k].mensaje + ")</b></li>";
+    }
+    html += "</ul>";
+  }
+  contenido.innerHTML = html;
+
+  // Click muestra/oculta el panel
+  btn.onclick = function() {
+    panel.style.display = (panel.style.display === "none" || panel.style.display === "") ? "block" : "none";
+  };
+}
+
+// =================== PARSE HORA 12H ===================
+function eventoStringAFecha(fechaISO, horaStr) {
+  // Ultra-tolerante: "1:45 p.m.", "1:45 p. m.", "1:45pm", "1:45 PM", etc.
+  if (!fechaISO || !horaStr) return null;
+  horaStr = horaStr.trim().toLowerCase();
+  // Normaliza: elimina todos espacios y puntos
+  horaStr = horaStr.replace(/[\s\.]/g, '');
+  // Busca am o pm
+  var ampm = "";
+  if (horaStr.substr(-2) === "am") ampm = "am";
+  if (horaStr.substr(-2) === "pm") ampm = "pm";
+  horaStr = horaStr.replace(/am|pm/, "");
+  var partes = horaStr.split(":");
+  if (partes.length !== 2) return null;
+  var hora = parseInt(partes[0],10);
+  var min = parseInt(partes[1],10);
+  if (isNaN(hora) || isNaN(min)) return null;
+  if (ampm === "pm" && hora < 12) hora += 12;
+  if (ampm === "am" && hora === 12) hora = 0;
+  // Usar SIEMPRE fecha local:
+  var fecha = parseFechaISOComoLocal(fechaISO);
+  fecha.setHours(hora);
+  fecha.setMinutes(min);
+  fecha.setSeconds(0);
+  return fecha;
+}
+
+// =================== SUMAR DÍAS FECHA LOCAL ===================
+function sumarDiasAISO(fechaISO, dias) {
+  var d = parseFechaISOComoLocal(fechaISO);
+  d.setDate(d.getDate() + dias);
+  return getFechaLocalISO(d);
+}
+
+// =================== CALENDARIO VISUAL (USANDO FECHAS LOCALES) ===================
+function renderMesCalendario() {
+  var cont = document.getElementById('lista-eventos-calendario');
+  var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var hoy = getFechaLocalISO(new Date());
+
+  var now = new Date();
+  var anio = (anioVista !== null ? anioVista : now.getFullYear());
+  var mes = (mesVista !== null ? mesVista : now.getMonth());
+  var firstDay = new Date(anio, mes, 1);
+  var lastDay = new Date(anio, mes + 1, 0);
+
+  var html = '<div style="text-align:center;font-size:1.17em;font-weight:600;color:#17406a;margin-bottom:8px;">'
+    + meses[mes] + ' ' + anio + '</div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+    '<button class="boton-pequeno" onclick="cambiarMesCalendario(-1)">&lt;</button>' +
+    '<div></div>' +
+    '<button class="boton-pequeno" onclick="cambiarMesCalendario(1)">&gt;</button>' +
+    '</div>';
+
+  html += '<table id="tabla-calendario" style="width:100%;border-collapse:collapse;box-shadow:0 2px 12px #b7ccee22;border-radius:12px;overflow:hidden;">';
+  html += '<thead><tr>' +
+    '<th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr></thead><tbody>';
+
+  var diaSemana = (firstDay.getDay() + 6) % 7; // Lunes=0
+  var dia = 1 - diaSemana;
+  for (var fila=0; fila<6; fila++) {
+    html += '<tr>';
+    for (var col=0; col<7; col++, dia++) {
+      var fecha = new Date(anio, mes, dia);
+      var fechaISO = getFechaLocalISO(fecha);
+      var esHoy = (fechaISO === hoy);
+      var esMesActual = (fecha.getMonth() === mes);
+      var eventosDia = [];
+      for (var e=0; e<eventosCalendario.length; e++) {
+        if (eventosCalendario[e].fecha === fechaISO) eventosDia.push(eventosCalendario[e]);
+      }
+      html += '<td class="' + (esMesActual ? '' : 'cal-dia-otro ') + (esHoy ? 'cal-dia-hoy' : '') + '" onclick="mostrarDialogoEvento(\'' + fechaISO + '\')">';
+      if (esMesActual) {
+        html += '<div class="cal-dia-num">' + fecha.getDate() + '</div>';
+      } else {
+        html += '<div style="font-weight:400;font-size:1.08em;opacity:0.4;margin-bottom:2px;">' + fecha.getDate() + '</div>';
+      }
+      for (var j=0; j<eventosDia.length; j++) {
+        html += '<div class="cal-evento">'
+          + (eventosDia[j].hora ? '<span class="cal-evento-hora">' + eventosDia[j].hora + '</span>' : '')
+          + '<span class="cal-evento-titulo">' + eventosDia[j].titulo + '</span>'
+          + '<span class="cal-evento-borrar" title="Borrar" onclick="event.stopPropagation();borrarEventoCalendario(' + buscarIndiceEvento(eventosDia[j].fecha, eventosDia[j].titulo, eventosDia[j].hora) + ');">&times;</span>'
+          + '</div>';
+      }
+      html += '</td>';
+    }
+    html += '</tr>';
+    if (dia > lastDay.getDate()) break;
+  }
+  html += '</tbody></table>';
+
+  html += '<div id="dialogo-agregar-evento" class="cal-dialog-bg">'
+    + '<form class="cal-dialog" onsubmit="insertarEventoDesdeDialogo();return false;">'
+    + '<div class="cal-dialog-titulo" id="titulo-dia-evento"></div>'
+    + '<div class="cal-dialog-form-row">'
+    + '<input type="hidden" id="input-dia-dialogo">'
+    + '<input type="text" id="input-titulo-dialogo" placeholder="Título del evento" required>'
+    + '<select id="input-hora12-dialogo" style="max-width:88px;">'
+    + '<option value="">Hora</option>';
+  for(var i=1;i<=12;i++){html+='<option value="'+i+'">'+i+'</option>';}
+  html += '</select>'
+    + '<select id="input-min-dialogo" style="max-width:74px;">'
+    + '<option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option>'
+    + '</select>'
+    + '<select id="input-ampm-dialogo" style="max-width:60px;"><option value="a.m.">a.m.</option><option value="p.m.">p.m.</option></select>'
+    + '<button class="boton" type="submit">Agregar</button>'
+    + '</div>'
+    + '<div class="cal-dialog-footer"><button class="boton boton-pequeno" type="button" onclick="cerrarDialogoEvento()">Cerrar</button></div>'
+    + '</form></div>';
+
+  cont.innerHTML = html;
+}
+
+// =================== NAVEGACIÓN ENTRE MESES ===================
+function cambiarMesCalendario(delta) {
+  var now = new Date();
+  if (mesVista === null || anioVista === null) {
+    mesVista = now.getMonth();
+    anioVista = now.getFullYear();
+  }
+  mesVista += delta;
+  if (mesVista < 0) { mesVista = 11; anioVista--; }
+  if (mesVista > 11) { mesVista = 0; anioVista++; }
+  renderMesCalendario();
+  mostrarRecordatoriosCalendario();
+}
+
+// =================== DIÁLOGOS Y EVENTOS ===================
+function mostrarDialogoEvento(fechaISO) {
+  var dlg = document.getElementById('dialogo-agregar-evento');
+  document.getElementById('input-dia-dialogo').value = fechaISO;
+  document.getElementById('input-titulo-dialogo').value = "";
+  document.getElementById('input-hora12-dialogo').selectedIndex = 0;
+  document.getElementById('input-min-dialogo').selectedIndex = 0;
+  document.getElementById('input-ampm-dialogo').selectedIndex = 0;
+  var partes = fechaISO.split("-");
+  var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('titulo-dia-evento').innerHTML = "Agregar evento para el " + partes[2] + " de " + meses[parseInt(partes[1],10)-1] + " de " + partes[0];
+  dlg.style.display = "flex";
+}
+function cerrarDialogoEvento() {
+  document.getElementById('dialogo-agregar-evento').style.display = "none";
+}
+
+function insertarEventoDesdeDialogo() {
+  var fecha = document.getElementById('input-dia-dialogo').value;
+  var titulo = document.getElementById('input-titulo-dialogo').value.trim();
+  var hora12 = document.getElementById('input-hora12-dialogo').value;
+  var min = document.getElementById('input-min-dialogo').value;
+  var ampm = document.getElementById('input-ampm-dialogo').value;
+  var hora = "";
+  if(hora12!=="") {
+    hora = hora12+':'+min+' '+ampm;
+  }
+  if (!fecha || !titulo) return;
+  eventosCalendario.push({ fecha: fecha, titulo: titulo, hora: hora });
+  guardarEventosCalendario();
+  cerrarDialogoEvento();
+  renderMesCalendario();
+  mostrarRecordatoriosCalendario();
+}
+
+function buscarIndiceEvento(fecha, titulo, hora) {
+  for (var i=0; i<eventosCalendario.length; i++) {
+    if (eventosCalendario[i].fecha === fecha && eventosCalendario[i].titulo === titulo && eventosCalendario[i].hora === hora) return i;
+  }
+  for (var i=0; i<eventosCalendario.length; i++) {
+    if (eventosCalendario[i].fecha === fecha && eventosCalendario[i].titulo === titulo) return i;
+  }
+  return -1;
+}
+
+function borrarEventoCalendario(idx) {
+  if (confirm("¿Seguro que deseas borrar este evento?")) {
+    eventosCalendario.splice(idx, 1);
+    guardarEventosCalendario();
+    renderMesCalendario();
+    mostrarRecordatoriosCalendario();
+  }
+}
+
+// =================== INICIALIZACIÓN ===================
+function inicializarCalendario() {
+  leerEventosCalendario();
+  mesVista = null;
+  anioVista = null;
+  renderMesCalendario();
+  mostrarRecordatoriosCalendario();
+  setInterval(mostrarRecordatoriosCalendario, 60000); // Actualiza recordatorios cada minuto
+}
+// Utilidad
+  function abrirRuta(ruta) {
+    if (fso.FolderExists(ruta)) {
+      shell.Run('"' + ruta + '"', 1, false);
+    } else {
+      alert("La carpeta no existe.");
+    }
+  }
+</script>
+</body>
+</html>
