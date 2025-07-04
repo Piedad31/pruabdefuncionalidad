@@ -3592,7 +3592,7 @@ function filtrarFormatosV2() {
   });
   paginaFormatosV2 = 1;
   renderizarListaFormatosV2();
-  formatoSeleccionadoV2 = null;
+  /* formatoSeleccionadoV2 = null; */ // Comentado en intento anterior, se mantiene comentado.
 }
 
 function renderizarListaFormatosV2() {
@@ -3613,17 +3613,18 @@ function renderizarListaFormatosV2() {
   for (var i = 0; i < formatosPagina.length; i++) {
     var a = document.createElement("a");
       a.textContent = formatosPagina[i].Nombre;
-      a.href = "#"; // Importante para que sea clickeable y tome estilos de link
-      a.style.display = "block"; // Asegura que cada link ocupe su línea
-      a.style.marginBottom = "5px"; // Espacio entre links
-      a.onclick = (function(idx) {
+      a.href = "#";
+      a.style.display = "block";
+      a.style.marginBottom = "5px";
+      // MODIFICADO: onclick llama a seleccionarFormatoPorNombreV2
+      a.onclick = (function(nombre) {
           return function(event) {
-              event.preventDefault(); // Previene el salto de página
-              seleccionarFormatoV2(inicio + idx);
+              event.preventDefault();
+              seleccionarFormatoPorNombreV2(nombre);
           };
-      })(i);
+      })(formatosPagina[i].Nombre); // Pasar el nombre del formato actual
       if (formatoSeleccionadoV2 && formatoSeleccionadoV2.Nombre === formatosPagina[i].Nombre) {
-        a.classList.add('selected'); // Asegúrate que la clase 'selected' exista en tus CSS para v2
+        a.classList.add('selected');
       }
       div.appendChild(a);
   }
@@ -3641,22 +3642,40 @@ function renderizarListaFormatosV2() {
   document.getElementById("cantidad-formatos-v2").textContent = formatosFiltradosV2.length;
 }
 
-function seleccionarFormatoV2(idx) {
-  // --- DEBUG ---
-  // alert("seleccionarFormatoV2 llamado con idx: " + idx + "\nformatosFiltradosV2.length: " + (formatosFiltradosV2 ? formatosFiltradosV2.length : "N/A"));
-  // --- FIN DEBUG ---
+// function seleccionarFormatoV2(idx) { // COMENTADA: Antigua función de selección por índice
+//   // --- DEBUG ---
+//   // alert("seleccionarFormatoV2 llamado con idx: " + idx + "\nformatosFiltradosV2.length: " + (formatosFiltradosV2 ? formatosFiltradosV2.length : "N/A"));
+//   // --- FIN DEBUG ---
 
-  if (formatosFiltradosV2 && idx >= 0 && idx < formatosFiltradosV2.length && formatosFiltradosV2[idx] && typeof formatosFiltradosV2[idx].Nombre !== 'undefined') {
-    formatoSeleccionadoV2 = formatosFiltradosV2[idx];
-    // --- DEBUG ---
-    // alert("Formato seleccionado en seleccionarFormatoV2: " + formatoSeleccionadoV2.Nombre + "\nRuta: " + formatoSeleccionadoV2.Ruta);
-    // --- FIN DEBUG ---
-  } else {
-    // --- DEBUG ---
-    // alert("Error en seleccionarFormatoV2: idx inválido o formato sin nombre.\nidx: " + idx +
-    //       "\nformatosFiltradosV2[idx]: " + (formatosFiltradosV2 && formatosFiltradosV2[idx] ? JSON.stringify(formatosFiltradosV2[idx]) : "N/A"));
-    // --- FIN DEBUG ---
-    formatoSeleccionadoV2 = null; // Asegurar que quede nulo si hay error
+//   if (formatosFiltradosV2 && idx >= 0 && idx < formatosFiltradosV2.length && formatosFiltradosV2[idx] && typeof formatosFiltradosV2[idx].Nombre !== 'undefined') {
+//     formatoSeleccionadoV2 = formatosFiltradosV2[idx];
+//     // --- DEBUG ---
+//     // alert("Formato seleccionado en seleccionarFormatoV2: " + formatoSeleccionadoV2.Nombre + "\nRuta: " + formatoSeleccionadoV2.Ruta);
+//     // --- FIN DEBUG ---
+//   } else {
+//     // --- DEBUG ---
+//     // alert("Error en seleccionarFormatoV2: idx inválido o formato sin nombre.\nidx: " + idx +
+//     //       "\nformatosFiltradosV2[idx]: " + (formatosFiltradosV2 && formatosFiltradosV2[idx] ? JSON.stringify(formatosFiltradosV2[idx]) : "N/A"));
+//     // --- FIN DEBUG ---
+//     formatoSeleccionadoV2 = null; // Asegurar que quede nulo si hay error
+//   }
+//   renderizarListaFormatosV2();
+// }
+
+// NUEVA FUNCIÓN: Seleccionar formato por nombre
+function seleccionarFormatoPorNombreV2(nombreFormato) {
+  var encontrado = false;
+  if (formatosFiltradosV2) {
+    for (var i = 0; i < formatosFiltradosV2.length; i++) {
+      if (formatosFiltradosV2[i] && formatosFiltradosV2[i].Nombre === nombreFormato) {
+        formatoSeleccionadoV2 = formatosFiltradosV2[i];
+        encontrado = true;
+        break;
+      }
+    }
+  }
+  if (!encontrado) {
+    formatoSeleccionadoV2 = null;
   }
   renderizarListaFormatosV2();
 }
